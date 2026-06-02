@@ -487,4 +487,4 @@ export function HeroSection() {
             </div>
         </>
     )
-}# telugu
+}git commit -m "first commit"# telugu
