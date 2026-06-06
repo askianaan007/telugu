@@ -112,19 +112,29 @@ export default function Header() {
                 variants={reduceMotion ? undefined : headerVariants}
                 animate={reduceMotion ? { y: 0, opacity: 1, scale: 1 } : scrollHidden ? 'hidden' : 'visible'}
                 className={cn(
-                    'fixed inset-x-0 top-4 z-50 origin-top will-change-transform',
-                    'px-3 sm:top-5 sm:px-4 lg:top-10 lg:px-10',
-                    scrollHidden && 'pointer-events-none'
+                    'fixed inset-x-0 z-50 origin-top will-change-transform',
+                    // FIX 2: proper top gap + left/right padding on every breakpoint
+                    'top-7 px-8',
+                    'sm:top-10 sm:px-10',
+                    'md:top-10 md:px-10',
+                    'lg:top-10 lg:px-10',
+                    scrollHidden && 'pointer-events-none',
                 )}
             >
                 <div
-                    className="mx-auto flex min-h-14 max-w-4xl items-center justify-between gap-2 rounded-[70px] px-2.5 py-1.5 sm:gap-3 sm:px-3 lg:gap-8 lg:px-4 xl:gap-12"
+                    className={cn(
+                        'mx-auto flex items-center justify-between gap-2 rounded-[70px]',
+                        'min-h-12 px-2 py-1',
+                        'sm:min-h-13 sm:px-2.5 sm:py-1.5',
+                        'lg:min-h-14 lg:max-w-4xl lg:gap-8 lg:px-4',
+                        'xl:gap-12',
+                    )}
                     style={glassStyle}
                 >
                     <Link
                         href="#hero"
                         aria-label="Telugu Airlines home"
-                        className="relative flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5 lg:gap-3"
+                        className="relative flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3"
                     >
                         <span className="relative flex shrink-0 items-center justify-start overflow-hidden">
                             <Image
@@ -133,7 +143,7 @@ export default function Header() {
                                 width={320}
                                 height={100}
                                 priority
-                                className="h-9 w-auto max-w-13 object-contain object-left sm:h-10 sm:max-w-14 lg:h-11 lg:max-w-15"
+                                className="h-7 w-auto max-w-11 object-contain object-left sm:h-8 sm:max-w-12 lg:h-11 lg:max-w-15"
                             />
                         </span>
                         <span className="flex flex-col gap-0.5">
@@ -143,11 +153,13 @@ export default function Header() {
                                 width={420}
                                 height={84}
                                 priority
-                                className="h-4.5 w-auto max-w-30 object-contain object-left sm:h-5 sm:max-w-40 lg:h-7 lg:max-w-65"
+                                // FIX 2: smaller text on mobile
+                                className="h-3.5 w-auto max-w-22 object-contain object-left sm:h-4.25 sm:max-w-32 lg:h-7 lg:max-w-65"
                             />
                         </span>
                     </Link>
 
+                    {/* Desktop nav */}
                     <nav className="hidden items-center gap-5 lg:flex" aria-label="Primary">
                         {NAV_LINKS.map((link) => (
                             <Link
@@ -164,21 +176,30 @@ export default function Header() {
                         ))}
                     </nav>
 
-                    <div className="flex items-center gap-2">
-                        <ActionButton href="#contact" label="Contact Us" className="inline-flex" />
+                    {/* Right side: CTA + hamburger */}
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                        {/* FIX 2: Contact Us button smaller on mobile */}
+                        <div className="scale-[0.78] origin-right sm:scale-[0.85] lg:scale-100">
+                            <ActionButton href="#contact" label="Contact Us" className="inline-flex" />
+                        </div>
                         <button
                             type="button"
                             onClick={() => setOpen((v) => !v)}
                             aria-label={open ? 'Close menu' : 'Open menu'}
                             aria-expanded={open}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-black/8 text-brand-black backdrop-blur-md transition-colors hover:bg-black/15 lg:hidden"
+                            // FIX 2: smaller hamburger on mobile
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-black/8 text-brand-black backdrop-blur-md transition-colors hover:bg-black/15 sm:h-9 sm:w-9 lg:hidden"
                         >
-                            {open ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
+                            {open
+                                ? <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                : <Menu className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            }
                         </button>
                     </div>
                 </div>
             </motion.header>
 
+            {/* Mobile nav drawer */}
             <AnimatePresence>
                 {open && (
                     <motion.div
@@ -194,12 +215,12 @@ export default function Header() {
                             aria-hidden
                         />
                         <motion.nav
-                            className="absolute inset-x-3 top-[calc(16px+60px+10px)] max-h-[min(560px,calc(100dvh-8rem))] overflow-y-auto rounded-3xl p-6 sm:inset-x-4 sm:top-[calc(20px+64px+12px)]"
+                            className="absolute inset-x-3 top-16.5 max-h-[min(560px,calc(100dvh-8rem))] overflow-y-auto rounded-3xl p-5 sm:inset-x-4 sm:top-20 sm:p-6"
                             style={mobileNavStyle}
-                            initial={{ y: -32, opacity: 0 }}
+                            initial={{ y: -24, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: -32, opacity: 0 }}
-                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                            exit={{ y: -24, opacity: 0 }}
+                            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                             aria-label="Mobile navigation"
                         >
                             <ul className="space-y-1">
@@ -208,7 +229,7 @@ export default function Header() {
                                         <Link
                                             href={link.href}
                                             onClick={() => setOpen(false)}
-                                            className="flex items-center justify-between rounded-2xl px-4 py-3.5 font-sans text-[15px] font-bold uppercase tracking-[0.06em] text-white/80 transition-colors hover:bg-white/8 hover:text-white"
+                                            className="flex items-center justify-between rounded-2xl px-4 py-3 font-sans text-[14px] font-bold uppercase tracking-[0.06em] text-white/80 transition-colors hover:bg-white/8 hover:text-white sm:py-3.5 sm:text-[15px]"
                                         >
                                             {link.label}
                                             <ArrowRight className="h-4 w-4 text-[#ca8b37]" aria-hidden />
@@ -216,8 +237,13 @@ export default function Header() {
                                     </li>
                                 ))}
                             </ul>
-                            <div className="mt-6 border-t border-white/10 pt-6">
-                                <ActionButton href="#contact" label="Contact Us" fullWidth className="w-full justify-between" />
+                            <div className="mt-5 border-t border-white/10 pt-5">
+                                <ActionButton
+                                    href="#contact"
+                                    label="Contact Us"
+                                    fullWidth
+                                    className="w-full justify-between"
+                                />
                             </div>
                         </motion.nav>
                     </motion.div>

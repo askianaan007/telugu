@@ -23,8 +23,9 @@ type ActionButtonProps = {
 const fullWidthClassName =
   'relative w-full justify-end [&>span:first-of-type]:pointer-events-none [&>span:first-of-type]:absolute [&>span:first-of-type]:left-1/2 [&>span:first-of-type]:top-1/2 [&>span:first-of-type]:-translate-x-1/2 [&>span:first-of-type]:-translate-y-1/2'
 
+// Base pill — mobile-first, single string for Tailwind scanning
 const baseClassName =
-  'group inline-flex cursor-pointer items-center gap-3 rounded-full py-2 pr-2 pl-6 transition-transform duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed'
+  'group inline-flex cursor-pointer items-center rounded-full transition-transform duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed gap-1.5 py-1 pr-1 pl-3 md:gap-2 md:py-1.5 md:pr-1.5 md:pl-4 lg:gap-3 lg:py-2 lg:pr-2 lg:pl-6'
 
 const GOLD_FILL_GRADIENT = 'linear-gradient(90deg, #ca8b37 0%, #f9e67e 50%, #ca8b37 100%)'
 const GOLD_BORDER = 'linear-gradient(to right, #FFFFD5, #CE9840)'
@@ -38,7 +39,7 @@ const STYLE_CACHE = new Map<string, CSSProperties>()
 
 function gradientBorderStyle(
   fillColor: string,
-  options?: { fillIsGradient?: boolean; noShadow?: boolean }
+  options?: { fillIsGradient?: boolean; noShadow?: boolean },
 ): CSSProperties {
   const key = `${fillColor}|${options?.fillIsGradient}|${options?.noShadow}`
   if (STYLE_CACHE.has(key)) return STYLE_CACHE.get(key)!
@@ -61,7 +62,7 @@ function gradientBorderStyle(
 
 function resolveFillColor(
   tone: 'primary' | 'dark',
-  variant: 'default' | 'inverted' | 'request'
+  variant: 'default' | 'inverted' | 'request',
 ): string {
   if (variant === 'inverted') return GOLD_FILL_GRADIENT
   if (tone === 'primary') return '#14202F'
@@ -70,7 +71,6 @@ function resolveFillColor(
 
 function RequestGradientArrow({ className }: { className?: string }) {
   const gradientId = useId().replace(/:/g, '')
-
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -78,8 +78,8 @@ function RequestGradientArrow({ className }: { className?: string }) {
       fill="none"
       aria-hidden
       className={cn(
-        'h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5',
-        className
+        'h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 lg:h-5 lg:w-5',
+        className,
       )}
     >
       <defs>
@@ -110,32 +110,38 @@ function ActionButtonContent({
 
   return (
     <>
+      {/* Label — mobile: 12px, md: 13px, lg: 14px */}
       <span
         className={cn(
-          'font-mono text-[14px] leading-none font-medium tracking-wide uppercase',
+          'font-mono leading-none font-medium tracking-wide uppercase',
+          'text-[10px] md:text-[12px] lg:text-[14px]',
           isRequest && 'text-brand-white',
           isInverted && 'text-brand-navy',
-          !isRequest && !isInverted && 'text-brand-white'
+          !isRequest && !isInverted && 'text-brand-white',
         )}
       >
         {label ?? 'Book Now'}
       </span>
+
       {isRequest ? (
         (icon ?? <RequestGradientArrow />)
       ) : (
+        // Gold circle icon — mobile: 22px, md: 26px, lg: 32px
         <span
           className={cn(
-            'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+            'flex shrink-0 items-center justify-center rounded-full',
+            'h-[22px] w-[22px] md:h-[26px] md:w-[26px] lg:h-8 lg:w-8',
             isInverted
               ? 'bg-brand-navy'
-              : 'bg-gradient-to-r from-[#ca8b37] via-[#f9e67e] to-[#ca8b37]'
+              : 'bg-linear-to-r from-[#ca8b37] via-brand-gold-mid to-[#ca8b37]',
           )}
         >
           {icon ?? (
             <ArrowRight
               className={cn(
-                'h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5',
-                isInverted ? 'text-brand-white' : 'text-brand-button'
+                'transition-transform duration-300 group-hover:translate-x-0.5',
+                'h-[11px] w-[11px] md:h-[13px] md:w-[13px] lg:h-4 lg:w-4',
+                isInverted ? 'text-brand-white' : 'text-brand-button',
               )}
               aria-hidden
               strokeWidth={2.25}
@@ -166,15 +172,19 @@ export function ActionButton({
   const fillColor = resolveFillColor(tone, variant)
 
   const style = useMemo(
-    () => isRequest ? undefined : gradientBorderStyle(fillColor, { fillIsGradient: isInverted, noShadow }),
-    [isRequest, fillColor, isInverted, noShadow]
+    () =>
+      isRequest
+        ? undefined
+        : gradientBorderStyle(fillColor, { fillIsGradient: isInverted, noShadow }),
+    [isRequest, fillColor, isInverted, noShadow],
   )
 
   const pillClassName = cn(
     baseClassName,
-    isRequest && 'rounded-none bg-transparent py-0 pl-0 pr-0 shadow-none hover:-translate-y-0',
+    isRequest &&
+    'rounded-none bg-transparent py-0 pl-0 pr-0 shadow-none hover:-translate-y-0 md:py-0 md:pl-0 md:pr-0 lg:py-0 lg:pl-0 lg:pr-0',
     fullWidth && fullWidthClassName,
-    className
+    className,
   )
 
   if (href) {

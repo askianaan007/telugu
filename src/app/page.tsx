@@ -4,9 +4,6 @@ import { useRef } from 'react'
 import Header from '@/components/layout/Header'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { AboutIntroSection } from '@/components/sections/AboutSection'
-import { VisionMissionSection } from '@/components/sections/VisionMissionSection'
-import { AboutVisionHandoffProvider } from '@/components/sections/about/AboutVisionHandoffContext'
-import { AboutVisionHandoffBridge } from '@/components/sections/about/AboutVisionHandoffBridge'
 
 export default function HomePage() {
   const aboutSectionRef = useRef<HTMLElement | null>(null)

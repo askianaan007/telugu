@@ -48,43 +48,74 @@ export function TrustClientsBadge({
 }: TrustClientsBadgeProps) {
     return (
         <div
-            className={cn('rounded-[20px] p-[6px] sm:rounded-[22px] lg:rounded-[26px]', className)}
+            className={cn(
+                // outer gradient shell — tighter padding on mobile
+                'rounded-[16px] p-1',
+                'sm:rounded-[20px] sm:p-1.5',
+                'lg:rounded-[26px] lg:p-1.5',
+                className,
+            )}
             style={BADGE_OUTER_STYLE}
         >
-            <div className="rounded-[18px] bg-white px-3 py-2.5 sm:rounded-[20px] sm:px-4 sm:py-3 lg:rounded-[24px] lg:px-3 lg:py-2.5">
-                <div className="inline-flex items-center gap-3 sm:gap-3.5 lg:gap-4">
-                    <div className="flex -space-x-2 sm:-space-x-2.5 lg:-space-x-3">
+            {/* Inner white card */}
+            <div className={cn(
+                'rounded-[13px] bg-white',
+                // mobile: tight padding
+                'px-2.5 py-2',
+                'sm:rounded-[17px] sm:px-3 sm:py-2.5',
+                'lg:rounded-3xl lg:px-3 lg:py-2.5',
+            )}>
+                <div className={cn(
+                    'inline-flex items-center',
+                    // gap between avatars group and text group
+                    'gap-2 sm:gap-2.5 lg:gap-4',
+                )}>
+                    {/* Avatar stack */}
+                    <div className="flex -space-x-1.5 sm:-space-x-2 lg:-space-x-3">
                         {avatars.map((avatar, index) => (
                             <div
                                 key={avatar.src}
                                 className={cn(
-                                    'relative h-9 w-9 overflow-hidden rounded-full border-2 border-white sm:h-10 sm:w-10 lg:h-11 lg:w-11 xl:h-12 xl:w-12',
+                                    'relative overflow-hidden rounded-full border-2 border-white',
+                                    // mobile: 28px → sm: 32px → lg: 44px
+                                    'h-7 w-7',
+                                    'sm:h-8 sm:w-8',
+                                    'lg:h-11 lg:w-11 xl:h-12 xl:w-12',
                                     index === 0 && 'z-30',
                                     index === 1 && 'z-20',
-                                    index === 2 && 'z-10'
+                                    index === 2 && 'z-10',
                                 )}
                             >
                                 <Image
                                     src={avatar.src}
                                     alt={avatar.alt}
                                     fill
-                                    sizes="(max-width: 1023px) 36px, 44px"
+                                    sizes="(max-width: 639px) 28px, (max-width: 1023px) 32px, 44px"
                                     className="object-cover"
                                 />
                             </div>
                         ))}
                     </div>
 
-                    <div className={cn('flex flex-col gap-1', align === 'right' ? 'items-start' : 'items-end')}>
+                    {/* Stars + label */}
+                    <div className={cn(
+                        'flex flex-col',
+                        'gap-0.5 sm:gap-1',
+                        align === 'right' ? 'items-start' : 'items-end',
+                    )}>
                         <div
-                            className={cn('flex items-center gap-0.5', align === 'right' && 'justify-end')}
+                            className={cn(
+                                'flex items-center gap-0.5',
+                                align === 'right' && 'justify-end',
+                            )}
                             aria-label="5 out of 5 stars"
                         >
                             {STARS_SVG}
                             {Array.from({ length: 5 }).map((_, i) => (
                                 <Star
                                     key={i}
-                                    className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-[18px] lg:w-[18px]"
+                                    // mobile: 11px → sm: 13px → lg: 16px
+                                    className="h-[11px] w-[11px] sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4 xl:h-[18px] xl:w-[18px]"
                                     style={STAR_STYLE}
                                     stroke="none"
                                     aria-hidden
@@ -92,7 +123,11 @@ export function TrustClientsBadge({
                             ))}
                         </div>
 
-                        <p className="text-[12px] leading-none sm:text-[13px] lg:text-[14px] xl:text-[15px]">
+                        <p className={cn(
+                            'leading-none whitespace-nowrap',
+                            // mobile: 10px → sm: 11px → lg: 13px
+                            'text-[10px] sm:text-[11px] lg:text-[13px] xl:text-[14px]',
+                        )}>
                             <span className="font-normal text-gray-500">{prefixText}</span>
                             <span className="font-bold text-gray-900">{highlightText}</span>
                         </p>
