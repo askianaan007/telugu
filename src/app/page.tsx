@@ -4,6 +4,9 @@ import { useRef } from 'react'
 import Header from '@/components/layout/Header'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { AboutIntroSection } from '@/components/sections/AboutSection'
+import { CharterServicesSection } from '@/components/sections/ServicesSection'
+import { HeliportSolutionsSection } from '@/components/sections/HeliportSolutionsSection'
+import { GlobalPresenceSection } from '@/components/sections/GlobalPresenceSection'
 
 export default function HomePage() {
   const aboutSectionRef = useRef<HTMLElement | null>(null)
@@ -24,6 +27,9 @@ export default function HomePage() {
           fixedRingsRef={ringsRef}
           sectionRef={aboutSectionRef}
         />
+        <CharterServicesSection />
+        <HeliportSolutionsSection />
+        <GlobalPresenceSection />
       </main>
     </>
   )
