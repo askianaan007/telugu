@@ -1,16 +1,10 @@
 'use client'
 
-// src/components/sections/global/globalPresenceShared.tsx
-// ─────────────────────────────────────────────────────────
-// Shared card, flag styles, section copy — used by all tiers.
-
 import React from 'react'
 import Image from 'next/image'
 import { OFFICE_LOCATIONS } from '@/data/offices'
 import { globalPresenceRevealInnerClassName } from '@/lib/ui/aboutRevealShell'
 import { cn } from '@/lib/utils'
-
-// ─── Flag CSS vars — injected once per tier ───────────────────────────────────
 
 export const FLAG_STYLES = `
 .office-card-flag-container {
@@ -83,7 +77,7 @@ export function GlobalOfficeCard({
                     alt=""
                     fill
                     sizes="(min-width: 1280px) 650px, 100vw"
-                    className="pointer-events-none absolute inset-0 z-0 rounded-[16px] object-cover object-top-left"
+                    className="pointer-events-none absolute inset-0 z-0 rounded-2xl object-cover object-top-left"
                     aria-hidden
                 />
                 {/* Text col — wider on mobile so flag doesn't overlap text */}
@@ -115,7 +109,7 @@ export function GlobalOfficeCard({
                             clipPath: 'polygon(10.5% 0%, 100% 0%, 100% 100%, 10.5% 100%)',
                             transformOrigin: 'bottom right',
                         }}
-                        className="absolute right-0 bottom-0 h-full w-auto max-w-none object-contain drop-shadow-[0_18px_36px_-12px_rgba(9,9,11,0.35)] min-h-[120px] sm:min-h-[160px] md:min-h-[250px] lg:min-h-[220px] xl:min-h-[280px]"
+                        className="absolute right-0 bottom-0 h-full w-auto max-w-none object-contain drop-shadow-[0_18px_36px_-12px_rgba(9,9,11,0.35)] min-h-30 sm:min-h-40 md:min-h-62.5 lg:min-h-55 xl:min-h-70"
                     />
                 </div>
             </div>

@@ -7,6 +7,9 @@ import { AboutIntroSection } from '@/components/sections/AboutSection'
 import { CharterServicesSection } from '@/components/sections/ServicesSection'
 import { HeliportSolutionsSection } from '@/components/sections/HeliportSolutionsSection'
 import { GlobalPresenceSection } from '@/components/sections/GlobalPresenceSection'
+import { OurModelsSection } from '@/components/sections/OurModelsSection'
+import { WhyChooseUsSection } from '@/components/sections/WhyChooseUsSection'
+import { TaglineScrollSection } from '@/components/sections/TaglineScrollSection'
 
 export default function HomePage() {
   const aboutSectionRef = useRef<HTMLElement | null>(null)
@@ -30,6 +33,9 @@ export default function HomePage() {
         <CharterServicesSection />
         <HeliportSolutionsSection />
         <GlobalPresenceSection />
+        <OurModelsSection />
+        <WhyChooseUsSection />
+        <TaglineScrollSection />
       </main>
     </>
   )
