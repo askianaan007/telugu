@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="444" height="12" fill="none" viewBox="0 0 444 12">
+  <g clip-path="url(#a)">
+    <g filter="url(#b)">
+      <path fill="url(#c)" d="M147 0h179l-21.736 11H172.571L147 0Z"/>
+    </g>
+    <g filter="url(#d)">
+      <path stroke="#000" stroke-width="2" d="M70-4c129.295 6.624 202.186 6.709 333 0"/>
+    </g>
+  </g>
+  <defs>
+    <filter id="b" width="209" height="41" x="132" y="-15" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur result="effect1_foregroundBlur_376_4373" stdDeviation="7.5"/>
+    </filter>
+    <filter id="d" width="343.102" height="16.999" x="64.949" y="-9.999" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur result="effect1_foregroundBlur_376_4373" stdDeviation="2.5"/>
+    </filter>
+    <linearGradient id="c" x1="326" x2="147" y1="5.5" y2="5.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CA8B37"/>
+      <stop offset=".505" stop-color="#F9E67E"/>
+      <stop offset="1" stop-color="#CA8B37"/>
+    </linearGradient>
+    <clipPath id="a">
+      <path fill="#fff" d="M0 0h444v12H0z"/>
+    </clipPath>
+  </defs>
+</svg>

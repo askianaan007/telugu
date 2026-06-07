@@ -9,7 +9,11 @@ import { HeliportSolutionsSection } from '@/components/sections/HeliportSolution
 import { GlobalPresenceSection } from '@/components/sections/GlobalPresenceSection'
 import { OurModelsSection } from '@/components/sections/OurModelsSection'
 import { WhyChooseUsSection } from '@/components/sections/WhyChooseUsSection'
+import { FaqSection } from '@/components/sections/FaqSection'
+import { CommitmentSection } from '@/components/sections/CommitmentSection'
 import { TaglineScrollSection } from '@/components/sections/TaglineScrollSection'
+import { ContactCtaSection } from '@/components/sections/ContactCtaSection'
+import { SiteFooter } from '@/components/sections/SiteFooter'
 
 export default function HomePage() {
   const aboutSectionRef = useRef<HTMLElement | null>(null)
@@ -36,7 +40,11 @@ export default function HomePage() {
         <OurModelsSection />
         <WhyChooseUsSection />
         <TaglineScrollSection />
+        <CommitmentSection />
+        <FaqSection />
+        <ContactCtaSection />
       </main>
+      <SiteFooter />
     </>
   )
 }

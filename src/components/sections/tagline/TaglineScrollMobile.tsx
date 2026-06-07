@@ -1,64 +1,64 @@
 'use client'
 
-// src/components/sections/tagline/TaglineScrollMobile.tsx
-// Mobile (< 640px): static layout — video autoplay, taglines above, copy below.
-// No GSAP, no window references in render — SSR safe.
-
 import { useEffect, useRef, useState } from 'react'
-import { motion as m } from 'framer-motion'
 import { faqAccordionInnerClassName } from '@/lib/ui/aboutRevealShell'
 import { cn } from '@/lib/utils'
 
-const EASE = [0.22, 1, 0.36, 1] as const
 const OVERLAY_COPY = 'Where silence, space, and simplicity come together beautifully.'
 
 export function TaglineScrollMobile() {
-    const [pillH, setPillH] = useState(165)
-    const containerRef = useRef<HTMLDivElement>(null)
+    const [mounted, setMounted] = useState(false)
+    const [pillDims, setPillDims] = useState({ w: 280, h: 165 })
 
     useEffect(() => {
         const update = () => {
             const vw = window.innerWidth
-            const pillW = Math.min(280, Math.max(200, vw - 32))
-            setPillH((pillW / 280) * 165)
+            const w = Math.min(280, Math.max(200, vw - 32))
+            setPillDims({ w, h: Math.round((w / 280) * 165) })
         }
         update()
+        setMounted(true)
         window.addEventListener('resize', update)
         return () => window.removeEventListener('resize', update)
     }, [])
 
     return (
         <section
-            ref={containerRef}
             data-tagline-scroll
             aria-label="Less chaos, more clarity"
-            className="bg-brand-surface relative w-full h-svh overflow-hidden"
+            className="bg-brand-surface relative w-full overflow-hidden"
+            style={{ height: '100svh' }}
         >
-            {/* Taglines — above the pill */}
-            <m.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
-                className="pointer-events-none absolute inset-x-0 z-30 flex flex-col items-center gap-1 px-4 text-center top-[calc(50%-11rem)]"
-            >
-                <span className="text-brand-charcoal [font-family:var(--font-halant)] text-[clamp(1.25rem,5.5vw,1.375rem)] leading-tight font-normal tracking-[-0.04em]">
-                    Less chaos
-                </span>
-                <span className="text-brand-charcoal [font-family:var(--font-halant)] text-[clamp(1.25rem,5.5vw,1.375rem)] leading-tight font-normal tracking-[-0.04em]">
-                    More Clarity
-                </span>
-            </m.div>
+            {/* Ambient glow */}
+            <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-0"
+                style={{
+                    background: 'radial-gradient(ellipse 80% 50% at 50% 60%, rgba(202,139,55,0.10) 0%, transparent 70%)',
+                }}
+            />
 
-            {/* Video pill card — centered */}
-            <m.div
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.7, ease: EASE, delay: 0.2 }}
-                className="absolute inset-0 z-2 flex items-center justify-center"
-            >
+            {/* Taglines — centered vertically above pill */}
+            <div className="pointer-events-none absolute inset-x-0 z-20 flex flex-col items-center gap-1 px-6 text-center"
+                style={{ top: 'calc(50% - 12rem)' }}>
+                <span className="text-brand-charcoal [font-family:var(--font-halant)] font-normal tracking-[-0.04em]"
+                    style={{ fontSize: 'clamp(1.5rem,6.5vw,2rem)', lineHeight: 1.1 }}>
+                    Less chaos,
+                </span>
+                <span className="text-brand-charcoal [font-family:var(--font-halant)] font-normal tracking-[-0.04em]"
+                    style={{ fontSize: 'clamp(1.5rem,6.5vw,2rem)', lineHeight: 1.1 }}>
+                    More Clarity.
+                </span>
+
+                {/* Gold connector line */}
+                <div className="mt-4 h-px w-12 bg-brand-gold-start opacity-60" />
+            </div>
+
+            {/* Video pill — centered in viewport */}
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
                 <div
-                    className="relative overflow-hidden rounded-[24px] border border-black/8 p-2 w-[min(280px,calc(100vw-2rem))]"
-                    style={{ height: `${pillH}px` }}
+                    className="relative overflow-hidden rounded-[24px] border border-black/8 p-2"
+                    style={{ width: mounted ? `${pillDims.w}px` : '280px', height: mounted ? `${pillDims.h}px` : '165px' }}
                 >
                     <div className={cn(
                         faqAccordionInnerClassName(),
@@ -72,28 +72,36 @@ export function TaglineScrollMobile() {
                             aria-hidden
                             className="relative z-1 h-full w-full object-cover object-center bg-brand-surface"
                         />
-                        {/* Bottom gradient */}
+                        {/* Bottom gradient over video */}
                         <div
                             aria-hidden
-                            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[52%]"
+                            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1/2"
                             style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(9,9,11,0.55) 55%, rgba(9,9,11,0.88) 100%)' }}
                         />
                     </div>
                 </div>
-            </m.div>
+            </div>
 
-            {/* Copy overlay — bottom */}
-            <m.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: EASE, delay: 0.35 }}
-                className="pointer-events-none absolute right-4 left-4 z-30 flex items-stretch gap-2.5 text-left bottom-[max(1.25rem,env(safe-area-inset-bottom,0px))]"
+            {/* Copy — pinned to bottom above safe area */}
+            <div
+                className="pointer-events-none absolute right-5 left-5 z-20 flex items-stretch gap-3"
+                style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))' }}
             >
-                <span aria-hidden className="w-0.5 shrink-0 self-stretch bg-white" />
-                <p className="min-w-0 flex-1 text-left [font-family:var(--font-halant)] font-normal tracking-[-0.04em] text-[15px] leading-[21px] text-white">
+                {/* Gold vertical bar */}
+                <div className="w-[2px] shrink-0 self-stretch rounded-full bg-brand-gold-start opacity-75" />
+                <p className="min-w-0 flex-1 text-left [font-family:var(--font-halant)] font-normal tracking-[-0.03em] text-brand-charcoal"
+                    style={{ fontSize: '14px', lineHeight: '1.55' }}>
                     {OVERLAY_COPY}
                 </p>
-            </m.div>
+            </div>
+
+            {/* Scroll hint */}
+            <div className="pointer-events-none absolute bottom-24 inset-x-0 z-20 flex flex-col items-center gap-1.5 opacity-40">
+                <div className="h-8 w-px bg-brand-charcoal" />
+                <span className="[font-family:var(--font-geist)] text-[10px] tracking-[0.18em] uppercase text-brand-charcoal">
+                    scroll
+                </span>
+            </div>
         </section>
     )
 }

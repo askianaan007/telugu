@@ -135,7 +135,7 @@ export function OurModelsDesktop() {
 
                     tl.to(cardCenter, {
                         xPercent: -50,
-                        yPercent: -50,
+                        yPercent: -40,
                         x: 0,
                         scale: 1,
                         opacity: 1,
@@ -163,7 +163,7 @@ export function OurModelsDesktop() {
                         zIndex: 30,
                         duration: 0.18,
                         xPercent: -50,
-                        yPercent: -50,
+                        yPercent: -40,
                     }, 0.46)
 
                     tl.to(cardCenter, {
@@ -202,7 +202,7 @@ export function OurModelsDesktop() {
                         zIndex: 30,
                         duration: 0.18,
                         xPercent: -50,
-                        yPercent: -50,
+                        yPercent: -40,
                     }, 0.72)
                     tl.to(details[1], { autoAlpha: 0, duration: 0.10 }, 0.72)
                     tl.to(details[2], { autoAlpha: 1, duration: 0.12 }, 0.80)
