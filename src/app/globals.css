@@ -46,8 +46,13 @@
 --container-base: 1280px;
   --max-width-base: 1280px;
 
+  --color-about-reveal-frame-outer: rgba(255, 255, 255, 0.4);
+  --color-about-reveal-frame-outer-border: rgba(255, 255, 255, 0.9);
   --color-about-reveal-inner-bg: #ffffff;
   --color-about-reveal-inner-border: rgba(0, 0, 0, 0.06);
+
+  --color-brand-sky-100: #e0f2fe;
+  --color-brand-sky-200: #bae6fd;
   --color-about-intro-word-muted: #737373;
 
   --radius-card: 20px;
@@ -149,6 +154,20 @@
   .z-header     { z-index: var(--z-header); }
   .z-modal      { z-index: var(--z-modal); }
 
+  .bg-global-presence-inner-sky-radial {
+    background-image: radial-gradient(
+      ellipse 120% 88% at 0% 0%,
+      color-mix(in srgb, var(--color-brand-sky-100) 90%, transparent) 0%,
+      color-mix(in srgb, var(--color-brand-sky-200) 42%, transparent) 38%,
+      transparent 64%
+    );
+  }
+
+  .mask-radial-fade {
+    mask-image: radial-gradient(ellipse at center, #000 35%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 35%, transparent 75%);
+  }
+
   .will-change-scroll {
     will-change: transform;
   }
@@ -169,7 +188,96 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+
+  [data-site-footer] .footer-reveal-card,
+  [data-site-footer] .footer-reveal-watermark,
+  [data-site-footer] .footer-reveal-watermark-wrap,
+  [data-site-footer] .footer-reveal-globe,
+  [data-site-footer] .footer-reveal-globe-wrap,
+  [data-site-footer] .footer-reveal-nav-scroll,
+  [data-site-footer] .footer-reveal-copyright {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  [data-site-footer] .footer-reveal-watermark {
+    background-position-y: 0% !important;
+  }
 }
+
+/* ── Footer reveal CSS transitions (driven by data-in-view attribute) ── */
+
+[data-site-footer] .footer-reveal-card {
+  opacity: 0;
+  transform: translateY(1.75rem) scale(0.97) translateZ(0);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+  backface-visibility: hidden;
+}
+
+[data-site-footer][data-in-view='true'] .footer-reveal-card {
+  opacity: 1;
+  transform: translateY(0) scale(1) translateZ(0);
+}
+
+[data-site-footer][data-in-view='true'] .footer-reveal-card:nth-child(1) { transition-delay: 0.06s; }
+[data-site-footer][data-in-view='true'] .footer-reveal-card:nth-child(2) { transition-delay: 0.14s; }
+[data-site-footer][data-in-view='true'] .footer-reveal-card:nth-child(3) { transition-delay: 0.22s; }
+
+[data-site-footer] .footer-reveal-watermark-wrap {
+  transform: translateY(1rem) translateZ(0);
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.18s;
+  backface-visibility: hidden;
+}
+
+[data-site-footer][data-in-view='true'] .footer-reveal-watermark-wrap {
+  transform: translateY(0) translateZ(0);
+}
+
+[data-site-footer] .footer-reveal-watermark {
+  opacity: 0;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+ background-image: linear-gradient(
+  180deg,
+  #6ea8d8 0%,
+  #2f5275 40%,
+  #0e1825 55%,
+  #2f5275 70%,
+  #6ea8d8 100%
+);
+  background-size: 100% 200%;
+  background-position-x: center;
+  background-position-y: 0%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.18s;
+}
+
+[data-site-footer][data-in-view='true'] .footer-reveal-watermark { opacity: 0.48; }
+
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  [data-site-footer][data-in-view='true'] .footer-reveal-watermark { opacity: 0.82; }
+}
+
+@media (min-width: 1280px) {
+  [data-site-footer][data-in-view='true'] .footer-reveal-watermark { opacity: 0.8; }
+}
+
+@media (min-width: 1536px) {
+  [data-site-footer][data-in-view='true'] .footer-reveal-watermark { opacity: 0.65; }
+}
+
+[data-site-footer] .footer-reveal-copyright {
+  opacity: 0;
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.5s;
+}
+
+[data-site-footer][data-in-view='true'] .footer-reveal-copyright { opacity: 1; }
 
 .hero-mobile-trust-badge {
     display: none;

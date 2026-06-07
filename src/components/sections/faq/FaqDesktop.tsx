@@ -1,6 +1,6 @@
 'use client'
 
-import { m, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { motion as m, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { Minus, Plus } from 'lucide-react'
 import Image from 'next/image'
 import { type KeyboardEvent, useId, useRef, useState, useSyncExternalStore } from 'react'

@@ -1,6 +1,6 @@
 'use client'
 
-import { m, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { motion as m, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { Container } from '@/components/layout/Container'
