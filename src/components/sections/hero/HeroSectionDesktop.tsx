@@ -180,7 +180,7 @@ export function HeroSectionDesktop({
                                         variants={fadeInUp}
                                         style={RM ? undefined : { scale: heliScale, rotate: heliRotate }}
                                         className="relative z-10 aspect-4/3 w-full shrink-0 lg:max-h-[min(80vh,780px)] lg:w-[125%]
-2xl:w-[150%] lg:-translate-y-30 xl:max-h-[min(78vh,780px)] xl:w-[140%] xl:-translate-y-10 2xl:max-h-[min(82vh,860px)] 2xl:-translate-y-90"
+2xl:w-[150%] lg:-translate-y-30 xl:max-h-[min(78vh,780px)] xl:w-[140%] xl:-translate-y-10 2xl:max-h-[min(82vh,860px)] 2xl:-translate-y-20"
                                     >
                                         <m.div
                                             animate={RM ? false : { y: [0, -10, 0] }}
