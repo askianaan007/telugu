@@ -9,6 +9,7 @@ const OVERLAY_COPY = 'Where silence, space, and simplicity come together beautif
 export function TaglineScrollMobile() {
     const [mounted, setMounted] = useState(false)
     const [pillDims, setPillDims] = useState({ w: 280, h: 165 })
+    const videoRef = useRef<HTMLVideoElement>(null)
 
     useEffect(() => {
         const update = () => {
@@ -20,6 +21,15 @@ export function TaglineScrollMobile() {
         setMounted(true)
         window.addEventListener('resize', update)
         return () => window.removeEventListener('resize', update)
+    }, [])
+
+    useEffect(() => {
+        const video = videoRef.current
+        if (!video) return
+        video.muted = true
+        video.play().catch(() => {
+            // Autoplay was blocked — fail silently
+        })
     }, [])
 
     return (
@@ -66,6 +76,7 @@ export function TaglineScrollMobile() {
                         'shadow-[0_40px_40px_-3.75px_rgba(0,0,0,0.02),0_20px_20px_-3px_rgba(0,0,0,0.03),0_11px_11px_-2.5px_rgba(0,0,0,0.04)]',
                     )}>
                         <video
+                            ref={videoRef}
                             src="/images/tagline-strip.mp4"
                             autoPlay muted loop playsInline
                             disablePictureInPicture

@@ -1,9 +1,6 @@
 'use client'
 
 // src/components/sections/hero/HeroSectionDesktop.tsx
-// ────────────────────────────────────────────────────
-// Desktop layout (1024px+) — fixed helicopter layer, silk background,
-// scroll-driven parallax, 2-col text grid, no fixed CTA (fades with scroll).
 
 import {
     motion as m,
@@ -55,7 +52,6 @@ function HeroBottomCloudRail({
                 'pointer-events-none absolute bottom-0 left-1/2 z-35',
                 'h-[60%] max-w-none -translate-x-1/2',
                 'w-[210%] xl:w-[190%] 2xl:w-[170%]',
-                'xl:bottom-24 2xl:-bottom-16',
                 gpu,
             )}
         >
@@ -103,14 +99,11 @@ export function HeroSectionDesktop({
 
     // ── Scroll motion ──────────────────────────────────────────────────────────
 
-    // Single spring drives all hero scroll animations — was 2 separate springs (extra physics per frame)
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ['start start', 'end start'],
     })
-    // One spring for all transforms — previously had 2 springs firing simultaneously
     const smooth = useSpring(scrollYProgress, { stiffness: 130, damping: 30, mass: 0.3 })
-    // lgScrollDrive derived directly off smooth (removed intermediate MotionValue)
     const lgScrollDrive = useTransform(smooth, [0, 0.07, 1], [0, 0, 1])
 
     const bgY = useTransform(smooth, [0, 1], ['0%', '18%'])
@@ -125,12 +118,6 @@ export function HeroSectionDesktop({
     const ctaOpacity = useTransform(smooth, [0, 0.22, 0.38, 0.52], [1, 0.78, 0.32, 0])
     const ctaPointer = useTransform(ctaOpacity, (v) => v < 0.05 ? 'none' : 'auto')
 
-    const heliLift = useTransform(smooth, [0, 0.55, 1], [
-        typeof window !== 'undefined' && window.innerWidth >= 1536 ? '30vh'
-            : typeof window !== 'undefined' && window.innerWidth >= 1280 ? '34vh'
-                : '38vh',
-        '22vh', '22vh'
-    ])
     const heliScale = useTransform(smooth, [0, 1], [1, 1.08])
     const heliRotate = useTransform(smooth, [0, 1], [0, -2.5])
 
@@ -164,6 +151,11 @@ export function HeroSectionDesktop({
                 style={fixedLayerStyle}
             >
                 <div className={cn('relative mx-auto h-full', HERO_MAIN_COLUMN_LAYOUT)}>
+
+                    {/*
+                     * RINGS — absolute center of the fixed layer (unchanged from original).
+                     * The rings component fills the full layer and self-centers.
+                     */}
                     {!RM && (
                         <m.div
                             className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center will-change-[opacity,transform]"
@@ -172,52 +164,59 @@ export function HeroSectionDesktop({
                             <AboutHelicopterRings ref={fixedRingsRef} className="mx-auto" />
                         </m.div>
                     )}
-                    <div ref={fixedHelicopterOpacityRef}
-                        className="relative isolate z-20 h-full min-h-[min(65svh,720px)] overflow-visible">
-                        <m.div
-                            className="absolute inset-0 z-30 flex items-center justify-center"
-                            style={RM ? undefined : { y: heliLift }}
-                        >
-                            <div className="flex w-full max-w-full flex-col items-center justify-center 
-  lg:-translate-y-[min(5vh,3.5rem)] 
-  xl:-translate-y-[min(10vh,8rem)] 
-  2xl:-translate-y-[min(8vh,6rem)]">
-                                <div className="relative flex w-[96%] max-w-7xl flex-col items-center justify-end gap-0 opacity-90 xl:w-[min(99vw,90rem)] 2xl:w-[min(99vw,88rem)]">
-                                    <m.div
-                                        initial="hidden"
-                                        animate="visible"
-                                        variants={fadeInUp}
-                                        style={RM ? undefined : { scale: heliScale, rotate: heliRotate }}
-                                        className="relative z-10 aspect-4/3 w-full shrink-0 lg:max-h-[min(80vh,780px)] lg:w-[125%]
-2xl:w-[140%] lg:-translate-y-30 xl:w-[120%] xl:-translate-y-10 2xl:max-h-[min(78vh,820px)] 2xl:-translate-y-10"
-                                    >
-                                        <m.div
-                                            animate={RM ? false : { y: [0, -10, 0] }}
-                                            transition={{ duration: 6, ease: easings.inOut, repeat: Infinity }}
-                                            className="relative h-full w-full"
-                                        >
-                                            <Image
-                                                src="/images/hero-helicopter.png"
-                                                alt="Telugu Airlines helicopter"
-                                                fill priority
-                                                sizes="(max-width: 1536px) 74vw, 80rem"
-                                                className="object-contain object-bottom drop-shadow-[0_32px_48px_rgba(0,0,0,0.28)] select-none lg:object-[center_78%] xl:object-[center_80%]"
-                                            />
-                                        </m.div>
-                                    </m.div>
-                                    <div aria-hidden className="bg-brand-black/30 absolute -bottom-2 left-1/2 h-10 w-1/2 -translate-x-1/2 rounded-[50%] blur-2xl" />
-                                </div>
-                            </div>
-                        </m.div>
 
-                        {/* Desktop CTA — fades out on scroll */}
+                    {/*
+                     * HELICOPTER — centered in the fixed layer (same as rings center).
+                     * Uses absolute inset-0 + flex center so it always sits at the
+                     * geometric center of the fixed layer, co-located with the rings.
+                     * No vh, no breakpoint offsets.
+                     */}
+                    <div
+                        ref={fixedHelicopterOpacityRef}
+                        className="absolute inset-0 z-20 flex items-center justify-center"
+                        style={{ paddingTop: '8%' }}
+                    >
                         <m.div
-                            style={RM ? undefined : { opacity: ctaOpacity, pointerEvents: ctaPointer }}
-                            className="pointer-events-auto absolute inset-x-0 z-40 flex justify-center px-6 bottom-[max(1.25rem,env(safe-area-inset-bottom))] xl:bottom-[max(1.75rem,env(safe-area-inset-bottom))]"
+                            initial="hidden"
+                            animate="visible"
+                            variants={fadeInUp}
+                            style={RM ? undefined : { scale: heliScale, rotate: heliRotate }}
+                            className="relative w-full max-w-7xl will-change-transform lg:w-[70%] xl:w-[65%] 2xl:w-full"
                         >
-                            <ActionButton onClick={openBookingModal} label="Book The Flight" />
+                            {/* Floating animation */}
+                            <m.div
+                                animate={RM ? false : { y: [0, -10, 0] }}
+                                transition={{ duration: 6, ease: easings.inOut, repeat: Infinity }}
+                                className="relative aspect-4/3 w-full"
+                            >
+                                <Image
+                                    src="/images/hero-helicopter.png"
+                                    alt="Telugu Airlines helicopter"
+                                    fill priority
+                                    sizes="(max-width: 1536px) 74vw, 80rem"
+                                    className="object-contain object-bottom drop-shadow-[0_32px_48px_rgba(0,0,0,0.28)] select-none lg:object-[center_78%] xl:object-[center_80%]"
+                                />
+                            </m.div>
+
+                            {/* Shadow blob */}
+                            <div
+                                aria-hidden
+                                className="bg-brand-black/30 absolute -bottom-2 left-1/2 h-10 w-1/2 -translate-x-1/2 rounded-[50%] blur-2xl"
+                            />
                         </m.div>
                     </div>
+
+                    {/*
+                     * CTA — pinned to bottom of the fixed viewport layer.
+                     * Completely independent from helicopter positioning.
+                     * Fades with scroll as before.
+                     */}
+                    <m.div
+                        style={RM ? undefined : { opacity: ctaOpacity, pointerEvents: ctaPointer }}
+                        className="pointer-events-auto absolute inset-x-0 z-40 flex justify-center px-6 bottom-[max(1.25rem,env(safe-area-inset-bottom))] xl:bottom-[max(1.75rem,env(safe-area-inset-bottom))]"
+                    >
+                        <ActionButton onClick={openBookingModal} label="Book The Flight" />
+                    </m.div>
                 </div>
             </m.div>
 
@@ -278,20 +277,6 @@ export function HeroSectionDesktop({
                                 cloudOpacity={RM ? undefined : cloudOpacity}
                             />
 
-                            {/* Helipad */}
-                            {/* <div aria-hidden className="
-pointer-events-none absolute inset-x-0
-bottom-[14%]
-xl:bottom-[26%]
-2xl:bottom-[8%]
-z-36 flex justify-center">
-                                <div className="lg:w-[50%]
-xl:w-[50%] max-w-225">
-                                    <Image src="/images/hero-heli-pad.png" alt="" width={800} height={160}
-                                        className="w-full object-contain opacity-90" />
-                                </div>
-                            </div> */}
-
                             {/* Text — scroll driven */}
                             <div className="relative z-40 flex min-h-0 flex-col p-6">
                                 <m.div
@@ -346,8 +331,6 @@ xl:w-[50%] max-w-225">
                                             className="[font-family:var(--font-halant)] font-normal text-current lg:text-[32px]
 xl:text-[52px] lg:leading-[1.12] lg:whitespace-nowrap xl:leading-[1.1] xl:tracking-[-0.035em] 2xl:text-[60px] 2xl:leading-[1.08] 2xl:tracking-[-0.03em]"
                                         >
-
-
                                             Across India &amp; Beyond
                                         </m.h2>
                                         <m.p
