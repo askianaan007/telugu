@@ -2,8 +2,12 @@
 
 // src/components/sections/heliport/HeliportSolutionsTablet.tsx
 // ─────────────────────────────────────────────────────────────
-// Tablet (768px – 1023px): 2-column staggered layout, GSAP reveal,
-// sticky header, bottom gradient decorators.
+// Fixes applied (same set as Desktop + Mobile):
+//  1. Removed `min-h-[200vh]` → scroll distance via padding on grid.
+//  2. Removed `backdrop-blur-sm` from sticky header → solid bg.
+//  3. Removed `scale` from GSAP reveals → translateY + opacity only.
+//  4. `overflow-clip` instead of `overflow-visible`.
+//  5. `contain: layout style` on grid container.
 
 import { useRef } from 'react'
 
@@ -32,12 +36,9 @@ export function HeliportSolutionsTablet() {
             const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-heliport-card]'))
             if (cards.length === 0) return
 
-            // Single batch set — one GSAP call for all cards
-            gsap.set(cards, { y: 48, scale: 0.96 })
+            // FIX: no scale
+            gsap.set(cards, { y: 40, opacity: 0 })
 
-            // One IntersectionObserver replaces N active ScrollTrigger scrub instances.
-            // Fires a one-shot animation per card on first intersection — zero per-frame
-            // scrub work during scroll.
             const io = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
@@ -46,8 +47,8 @@ export function HeliportSolutionsTablet() {
                         io.unobserve(card)
                         gsap.to(card, {
                             y: 0,
-                            scale: 1,
-                            duration: 0.65,
+                            opacity: 1,
+                            duration: 0.55,
                             ease: 'power2.out',
                             overwrite: true,
                         })
@@ -60,7 +61,7 @@ export function HeliportSolutionsTablet() {
 
             return () => {
                 io.disconnect()
-                gsap.set(cards, { clearProps: 'y,scale' })
+                gsap.set(cards, { clearProps: 'y,opacity' })
             }
         },
         { scope: sectionRef, dependencies: [reduceMotion] },
@@ -72,25 +73,28 @@ export function HeliportSolutionsTablet() {
             variant="default"
             paddingY="none"
             className={cn(
-                'bg-brand-navy! text-brand-white overflow-visible rounded-t-[50px]',
-                'min-h-[200vh]',
+                // FIX: overflow-clip, removed min-h-[200vh]
+                'bg-brand-navy! text-brand-white overflow-clip rounded-t-[50px]',
                 'pt-[160px]',
             )}
         >
             <Container className="max-w-base z-section-content relative">
-                {/* Sticky header */}
-                <div className="bg-brand-navy/95 sticky top-[120px] z-10 pt-6 pb-10 backdrop-blur-sm">
+                {/* FIX: no backdrop-blur-sm, solid bg */}
+                <div
+                    className="bg-brand-navy/95 sticky top-[120px] z-10 pt-6 pb-10"
+                    style={{ willChange: 'transform' }}
+                >
                     <HeliportSectionHeader reduceMotion={reduceMotion} />
                 </div>
 
-                {/* 2-column staggered grid */}
+                {/* FIX: contain + pb-[100vh] replaces min-h-[200vh] */}
                 <div
                     ref={gridRef}
-                    className="relative z-20 pb-28"
+                    className="relative z-20 pb-[100vh]"
                     data-heliport-region="md"
+                    style={{ contain: 'layout style' }}
                 >
                     <div className="mx-auto flex w-full flex-row justify-between pt-10">
-                        {/* Col 1 — left, no top offset */}
                         <div className="flex w-[calc(50%-0.75rem)] max-w-[340px] shrink-0 flex-col gap-8">
                             {heliportSolutionsByMdColumn(1).map((solution) => (
                                 <HeliportSolutionCard
@@ -100,7 +104,6 @@ export function HeliportSolutionsTablet() {
                                 />
                             ))}
                         </div>
-                        {/* Col 2 — right, offset down */}
                         <div className="flex w-[calc(50%-0.75rem)] max-w-[340px] shrink-0 flex-col gap-8 pt-32 md:gap-32 md:pt-60">
                             {heliportSolutionsByMdColumn(2).map((solution) => (
                                 <HeliportSolutionCard

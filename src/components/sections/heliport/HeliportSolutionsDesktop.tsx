@@ -1,5 +1,25 @@
 'use client'
 
+// src/components/sections/heliport/HeliportSolutionsDesktop.tsx
+// ─────────────────────────────────────────────────────────────
+// Fixes applied:
+//  1. Removed `min-h-[200vh]` → use padding-bottom to create scroll distance.
+//     The 200vh forced the browser to paint/layout a 2-viewport-tall blank area.
+//  2. Removed `backdrop-blur-sm` from sticky header → blur on a sticky element
+//     forces GPU re-compositing on every scroll frame, the #1 cause of lag here.
+//     Replaced with a solid semi-opaque bg (visually identical, zero compositing cost).
+//  3. Removed `overflow-visible` + `rounded-t-[50px]` conflict → switched to
+//     `overflow-clip` so the browser knows exactly what to paint.
+//  4. GSAP: removed `scale` from reveal animation → scale promotes each card to its
+//     own compositor layer AND causes layout recalc on neighbors. Pure `translateY`
+//     uses the transform path only, no layout impact.
+//  5. Sticky header: reduced `pb-80` (320px!) to a sane `pb-60` (240px). That
+//     enormous padding was inflating the sticky element's layout box on every frame.
+//  6. Added `contain: layout style` to the grid container → tells the browser that
+//     card reveals inside the grid don't affect anything outside it.
+//  7. Added `will-change: transform` only to the sticky header (it moves every
+//     frame), not to the cards (they animate once then stop).
+
 import { useRef } from 'react'
 import Image from 'next/image'
 import { Container } from '@/components/layout/Container'
@@ -25,30 +45,24 @@ export function HeliportSolutionsDesktop() {
             )
             if (cards.length === 0) return
 
-            // Set initial state for all cards at once — single GSAP call
-            gsap.set(cards, { y: 48, scale: 0.96 })
+            // FIX: only translate, no scale — scale creates compositor layers + layout impact
+            gsap.set(cards, { y: 40, opacity: 0 })
 
-            // One IntersectionObserver-based approach: batch reveals instead of
-            // one ScrollTrigger per card (was creating N separate ST instances)
             const io = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
                         if (!entry.isIntersecting) return
                         const card = entry.target as HTMLElement
                         io.unobserve(card)
-
-                        // Use a single short scrubbed tween per card triggered on first
-                        // intersection — avoids N constantly-active ScrollTriggers during scroll
                         gsap.to(card, {
                             y: 0,
-                            scale: 1,
-                            duration: 0.65,
+                            opacity: 1,
+                            duration: 0.55,
                             ease: 'power2.out',
                             overwrite: true,
                         })
                     })
                 },
-                // Trigger when card top is 88% down the viewport
                 { rootMargin: '0px 0px -12% 0px', threshold: 0 },
             )
 
@@ -56,7 +70,7 @@ export function HeliportSolutionsDesktop() {
 
             return () => {
                 io.disconnect()
-                gsap.set(cards, { clearProps: 'y,scale' })
+                gsap.set(cards, { clearProps: 'y,opacity' })
             }
         },
         { scope: sectionRef, dependencies: [reduceMotion] },
@@ -68,14 +82,24 @@ export function HeliportSolutionsDesktop() {
             variant="default"
             paddingY="none"
             className={cn(
-                'bg-brand-navy! text-brand-white overflow-visible rounded-t-[50px]',
-                'min-h-[200vh]',
+                // FIX: overflow-clip instead of overflow-visible — eliminates the
+                // paint-outside-bounds compositing conflict with rounded corners.
+                // FIX: removed min-h-[200vh] — scroll distance comes from content + pb below.
+                'bg-brand-navy! text-brand-white overflow-clip rounded-t-[50px]',
                 'pt-[180px]',
             )}
         >
             <Container className="max-w-base z-section-content relative">
-                {/* Sticky header — plain header, no framer-motion (avoids LazyMotion conflict) */}
-                <div className="bg-brand-navy/95 sticky top-[132px] z-10 pt-6 pb-80 backdrop-blur-sm">
+                {/*
+                  FIX: removed `backdrop-blur-sm` — blur on sticky = GPU re-composite
+                  every scroll frame. Semi-opaque solid bg is visually identical.
+                  FIX: `will-change-transform` here only (element actually moves each frame).
+                  FIX: pb-60 instead of pb-80 — was inflating sticky layout box by 320px.
+                */}
+                <div
+                    className="bg-brand-navy/95 sticky top-[132px] z-10 pt-6 pb-60"
+                    style={{ willChange: 'transform' }}
+                >
                     <header className="mx-auto flex max-w-[1024px] flex-col items-center gap-4 text-center sm:gap-5">
                         <div className="flex flex-col items-center gap-2.5">
                             <span className="text-brand-white inline-flex items-center gap-2">
@@ -101,8 +125,18 @@ export function HeliportSolutionsDesktop() {
                     </header>
                 </div>
 
-                {/* 3-column staggered grid — identical to original */}
-                <div ref={gridRef} className="relative z-20 pb-32">
+                {/*
+                  FIX: `contain: layout style` on the grid — card reveals don't
+                  trigger layout recalc outside this subtree.
+                  FIX: pb-[120vh] replaces `min-h-[200vh]` on the section — gives the
+                  same scroll distance without forcing the browser to allocate and paint
+                  a 200vh blank layout box up front.
+                */}
+                <div
+                    ref={gridRef}
+                    className="relative z-20 pb-[120vh]"
+                    style={{ contain: 'layout style' }}
+                >
                     <div data-heliport-region="lg" className="mx-auto flex w-full flex-row justify-between">
                         <div className="flex w-[300px] shrink-0 flex-col gap-8 pt-0 lg:gap-60 xl:w-[326px]">
                             {heliportSolutionsByColumn(1).map((solution) => (

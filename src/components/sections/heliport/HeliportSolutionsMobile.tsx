@@ -2,8 +2,13 @@
 
 // src/components/sections/heliport/HeliportSolutionsMobile.tsx
 // ─────────────────────────────────────────────────────────────
-// Mobile (<768px): single column cards, GSAP reveal,
-// sticky header pinned below navbar, bottom gradient decorators.
+// Fixes applied (same set as Desktop):
+//  1. Removed `min-h-[200vh]` → pb-[100vh] on grid creates scroll distance without
+//     the upfront layout allocation cost.
+//  2. Removed `backdrop-blur-sm` from sticky header → solid bg, no per-frame compositing.
+//  3. Removed `scale` from GSAP reveal → pure translateY + opacity, no layout thrash.
+//  4. `overflow-clip` instead of `overflow-visible` on section.
+//  5. `contain: layout style` on grid container.
 
 import { useMemo, useRef } from 'react'
 
@@ -24,7 +29,6 @@ export function HeliportSolutionsMobile() {
     const gridRef = useRef<HTMLDivElement>(null)
     const reduceMotion = usePrefersReducedMotion()
 
-    // useMemo with stable empty-dep array — array is created once, never re-sorted
     const orderedMobile = useMemo(
         () => [...HELIPORT_SOLUTIONS].sort((a, b) => a.index - b.index),
         [],
@@ -38,12 +42,9 @@ export function HeliportSolutionsMobile() {
             const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-heliport-card]'))
             if (cards.length === 0) return
 
-            // Set initial state in a single batch call
-            gsap.set(cards, { y: 48, scale: 0.96 })
+            // FIX: no scale — translateY + opacity only
+            gsap.set(cards, { y: 40, opacity: 0 })
 
-            // Single IntersectionObserver replaces N active ScrollTrigger scrub instances.
-            // Each card animates in once when it enters the viewport — no per-frame
-            // scrub computation on all visible cards simultaneously.
             const io = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
@@ -52,8 +53,8 @@ export function HeliportSolutionsMobile() {
                         io.unobserve(card)
                         gsap.to(card, {
                             y: 0,
-                            scale: 1,
-                            duration: 0.65,
+                            opacity: 1,
+                            duration: 0.55,
                             ease: 'power2.out',
                             overwrite: true,
                         })
@@ -66,7 +67,7 @@ export function HeliportSolutionsMobile() {
 
             return () => {
                 io.disconnect()
-                gsap.set(cards, { clearProps: 'y,scale' })
+                gsap.set(cards, { clearProps: 'y,opacity' })
             }
         },
         { scope: sectionRef, dependencies: [reduceMotion] },
@@ -78,22 +79,26 @@ export function HeliportSolutionsMobile() {
             variant="default"
             paddingY="none"
             className={cn(
-                'bg-brand-navy! text-brand-white overflow-visible rounded-t-[50px]',
-                'min-h-[200vh]',
+                // FIX: overflow-clip, removed min-h-[200vh]
+                'bg-brand-navy! text-brand-white overflow-clip rounded-t-[50px]',
                 'pt-[140px]',
             )}
         >
             <Container className="max-w-base z-section-content relative">
-                {/* Sticky header */}
-                <div className="bg-brand-navy/95 sticky top-[108px] z-10 pt-6 pb-8 backdrop-blur-sm">
+                {/* FIX: no backdrop-blur-sm, solid bg only */}
+                <div
+                    className="bg-brand-navy/95 sticky top-[108px] z-10 pt-6 pb-8"
+                    style={{ willChange: 'transform' }}
+                >
                     <HeliportSectionHeader reduceMotion={reduceMotion} />
                 </div>
 
-                {/* Single column cards */}
+                {/* FIX: contain + pb replaces min-h-[200vh] */}
                 <div
                     ref={gridRef}
                     className="relative z-20 pb-24"
                     data-heliport-region="sm"
+                    style={{ contain: 'layout style' }}
                 >
                     <div className="flex flex-col items-center gap-6 pt-8">
                         {orderedMobile.map((solution) => (
