@@ -79,7 +79,7 @@ export function CharterServicesDesktop() {
 
             setCardPositions(stackMetrics)
 
-            const scrollPct = 260 + Math.max(0, n - 1) * 34
+            const scrollPct = 320 + Math.max(0, n - 1)
 
             const tl = gsap.timeline({
                 scrollTrigger: {
@@ -98,13 +98,13 @@ export function CharterServicesDesktop() {
                 gsap.set(bgFigure, {
                     transformOrigin: '50% 52%',
                     force3D: true,
-                    y: bgTravel * 0.25,
+                    y: bgTravel * 0.52,
                     scale: 1,
                 })
             }
 
-            const INITIAL_HOLD = 0.14
-            const segment = (0.9 - INITIAL_HOLD) / Math.max(1, n - 1)
+            const INITIAL_HOLD = 0.22
+            const segment = (0.92 - INITIAL_HOLD) / Math.max(1, n - 1)
 
             for (let i = 1; i < n; i++) {
                 const startT = INITIAL_HOLD + (i - 1) * segment
@@ -145,7 +145,7 @@ export function CharterServicesDesktop() {
             const revealStack = () => {
                 const metrics = applyStackMetrics()
                 setCardPositions(metrics)
-                ScrollTrigger.refresh()
+                ScrollTrigger.refresh(true)
                 gsap.set(stage, { autoAlpha: 1 })
                 stage.setAttribute('data-ready', '')
             }
@@ -157,7 +157,7 @@ export function CharterServicesDesktop() {
                 } else {
                     applyStackMetrics()
                 }
-                ScrollTrigger.refresh()
+                ScrollTrigger.refresh(true)
             }
 
             window.addEventListener('resize', refreshLayout)
@@ -198,24 +198,25 @@ export function CharterServicesDesktop() {
                         data-charter-bg-figure
                         className={cn(
                             'absolute inset-0 w-full origin-[50%_52%] will-change-transform',
-                            'h-[110%]'
+                            'min-h-svh lg:min-h-[calc(100svh+var(--charter-stack-bg-travel,0px))]',
                         )}
                     >
                         <div
                             className={cn(
                                 'absolute inset-0 left-1/2 w-screen max-w-none -translate-x-1/2',
-                                'h-[110%]'
+                                'min-h-svh lg:min-h-[calc(100svh+var(--charter-stack-bg-travel,0px))]',
                             )}
                         >
                             <Image
-                                src="/images/charter-services-bg.png"
+                                src="/images/charter-services-bg.avif"
                                 alt=""
                                 fill
                                 priority
                                 className={cn(
-                                    'size-full min-w-full object-contain object-[center_5%]',
-                                    'min-h-svh lg:min-h-[calc(100svh+var(--charter-stack-bg-travel,0))]',
+                                    'size-full min-w-full object-cover object-[center_85%] sm:object-[center_35%] xl:object-[center_90%]',
+                                    'min-h-svh lg:min-h-[calc(100svh+var(--charter-stack-bg-travel,0px))]',
                                 )}
+                                sizes="100vw"
                             />
                             <div
                                 aria-hidden
@@ -248,8 +249,8 @@ export function CharterServicesDesktop() {
                             whileInView={reduceMotion ? undefined : 'visible'}
                             viewport={{ once: true, amount: 0.42, margin: '0px 0px -12% 0px' }}
                             className={cn(
-                                'grid gap-10 mb-36 lg:grid-cols-[minmax(0,1fr)_minmax(0,27.0625rem)] lg:items-end lg:gap-x-16 xl:gap-x-20',
-                                'lg:-mt-12 lg:gap-8 xl:mt-10 xl:gap-x-20 2xl:-mt-8',
+                                'grid gap-10 mb-46 lg:grid-cols-[minmax(0,1fr)_minmax(0,27.0625rem)] lg:items-end lg:gap-x-16 xl:gap-x-20',
+                                'lg:mt-0 lg:gap-8 xl:mt-10 xl:gap-x-20 2xl:mt-0',
                             )}
                         >
                             <div className="flex max-w-3xl flex-col gap-3 lg:max-w-none">
@@ -258,7 +259,7 @@ export function CharterServicesDesktop() {
                                         <Image
                                             src="/images/black-asterisk.svg"
                                             width={14} height={14} alt=""
-                                            className="h-3.5 w-3.5 shrink-0" aria-hidden
+                                            className="h-[14px] w-[14px] shrink-0" aria-hidden
                                         />
                                         <span className="[font-family:var(--font-geist)] text-[14px] leading-[normal] font-semibold tracking-[0.2em] uppercase">
                                             {SERVICES_BADGE_TEXT}
@@ -267,7 +268,7 @@ export function CharterServicesDesktop() {
                                     <Image
                                         src="/images/header-line-transparent-left-new.svg"
                                         width={364} height={8} alt=""
-                                        className="h-auto w-full max-w-70 shrink-0" aria-hidden
+                                        className="h-auto w-full max-w-[280px] shrink-0" aria-hidden
                                     />
                                 </m.div>
                                 <m.h2
@@ -286,7 +287,7 @@ export function CharterServicesDesktop() {
                                 variants={fadeInUp}
                                 className={cn(
                                     'text-brand-gray [font-family:var(--font-geist)] font-normal',
-                                    'max-w-108.25 pb-8 text-[18px] leading-5.75 lg:justify-self-end',
+                                    'max-w-108.25 pb-8 text-[18px] leading-[23px] lg:justify-self-end',
                                 )}
                             >
                                 {SERVICES_BODY}
@@ -298,12 +299,12 @@ export function CharterServicesDesktop() {
                     <div className="relative z-10 w-full overflow-visible lg:-mt-10 xl:-mt-12 xl:shrink-0 2xl:-mt-14">
                         {reduceMotion ? (
                             /* Reduced-motion: static stack */
-                            <div className="relative mx-auto max-w-[min(660px,calc(100vw-3rem))] pb-28 lg:-mt-20 xl:-mt-24 xl:max-w-182 2xl:-mt-28">
+                            <div className="relative mx-auto max-w-[min(860px,calc(100vw-3rem))] pb-28 lg:-mt-20 xl:-mt-24 xl:max-w-[860px] 2xl:-mt-28">
                                 <div className="relative mx-auto min-h-[min(52vh,520px)] w-full">
                                     {CHARTER_SERVICES.map((service, i) => (
                                         <div
                                             key={service.id}
-                                            className="absolute top-1/2 left-1/2 w-full max-w-[min(660px,calc(100vw-3rem))] xl:max-w-182"
+                                            className="absolute top-1/2 left-1/2 w-full max-w-[min(860px,calc(100vw-3rem))] xl:max-w-[860px]"
                                             style={{
                                                 transform: `translate(-50%, calc(-50% + ${charterStackFinalY(i)}px)) rotate(${charterCardRotationDeg(i)}deg)`,
                                                 zIndex: 10 + i,
@@ -316,7 +317,7 @@ export function CharterServicesDesktop() {
                             </div>
                         ) : (
                             /* Animated stack */
-                            <div className="relative mx-auto min-h-[min(76svh,720px)] w-full max-w-[min(720px,calc(100vw-2rem))] overflow-visible lg:-mt-20 lg:min-h-[min(76svh,460px)] xl:-mt-24 xl:min-h-[min(76svh,460px)] xl:max-w-182 2xl:-mt-28">
+                            <div className="relative mx-auto min-h-[min(76svh,720px)] w-full max-w-[min(860px,calc(100vw-2rem))] overflow-visible lg:-mt-20 lg:min-h-[min(76svh,480px)] xl:-mt-24 xl:min-h-[min(76svh,480px)] xl:max-w-[860px] 2xl:-mt-28">
                                 <div
                                     data-charter-stack-stage
                                     className="invisible relative h-full min-h-[inherit] w-full overflow-visible pt-0 pb-2 opacity-0 data-ready:visible data-ready:opacity-100 lg:translate-y-2 xl:-translate-y-10"
@@ -325,7 +326,7 @@ export function CharterServicesDesktop() {
                                         <div
                                             key={service.id}
                                             data-charter-stack-card
-                                            className="absolute top-1/2 left-1/2 w-full max-w-[min(660px,calc(100vw-3rem))] -translate-x-1/2 -translate-y-1/2 will-change-transform xl:max-w-182"
+                                            className="absolute top-1/2 left-1/2 w-full max-w-[min(860px,calc(100vw-3rem))] -translate-x-1/2 -translate-y-1/2 will-change-transform xl:max-w-[860px]"
                                             style={{
                                                 rotate: `${charterCardRotationDeg(i)}deg`,
                                                 zIndex: 10 + i,

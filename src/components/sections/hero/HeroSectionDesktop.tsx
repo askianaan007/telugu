@@ -82,7 +82,6 @@ function HeroBottomCloudRail({
     )
 }
 
-// ─── Main component ────────────────────────────────────────────────────────────
 
 export function HeroSectionDesktop({
     aboutSectionRef,
@@ -126,7 +125,12 @@ export function HeroSectionDesktop({
     const ctaOpacity = useTransform(smooth, [0, 0.22, 0.38, 0.52], [1, 0.78, 0.32, 0])
     const ctaPointer = useTransform(ctaOpacity, (v) => v < 0.05 ? 'none' : 'auto')
 
-    const heliLift = useTransform(smooth, [0, 0.55, 1], ['38vh', '22vh', '22vh'])
+    const heliLift = useTransform(smooth, [0, 0.55, 1], [
+        typeof window !== 'undefined' && window.innerWidth >= 1536 ? '30vh'
+            : typeof window !== 'undefined' && window.innerWidth >= 1280 ? '34vh'
+                : '38vh',
+        '22vh', '22vh'
+    ])
     const heliScale = useTransform(smooth, [0, 1], [1, 1.08])
     const heliRotate = useTransform(smooth, [0, 1], [0, -2.5])
 
@@ -174,7 +178,10 @@ export function HeroSectionDesktop({
                             className="absolute inset-0 z-30 flex items-center justify-center"
                             style={RM ? undefined : { y: heliLift }}
                         >
-                            <div className="flex w-full max-w-full flex-col items-center justify-center lg:-translate-y-[min(5vh,3.5rem)] xl:-translate-y-[min(15vh,15rem)] 2xl:-translate-y-[min(15vh,15rem)]">
+                            <div className="flex w-full max-w-full flex-col items-center justify-center 
+  lg:-translate-y-[min(5vh,3.5rem)] 
+  xl:-translate-y-[min(10vh,8rem)] 
+  2xl:-translate-y-[min(8vh,6rem)]">
                                 <div className="relative flex w-[96%] max-w-7xl flex-col items-center justify-end gap-0 opacity-90 xl:w-[min(99vw,90rem)] 2xl:w-[min(99vw,88rem)]">
                                     <m.div
                                         initial="hidden"
@@ -182,7 +189,7 @@ export function HeroSectionDesktop({
                                         variants={fadeInUp}
                                         style={RM ? undefined : { scale: heliScale, rotate: heliRotate }}
                                         className="relative z-10 aspect-4/3 w-full shrink-0 lg:max-h-[min(80vh,780px)] lg:w-[125%]
-2xl:w-[150%] lg:-translate-y-30 xl:max-h-[min(78vh,780px)] xl:w-[140%] xl:-translate-y-10 2xl:max-h-[min(82vh,860px)] 2xl:-translate-y-50"
+2xl:w-[140%] lg:-translate-y-30 xl:w-[120%] xl:-translate-y-10 2xl:max-h-[min(78vh,820px)] 2xl:-translate-y-10"
                                     >
                                         <m.div
                                             animate={RM ? false : { y: [0, -10, 0] }}
@@ -272,19 +279,18 @@ export function HeroSectionDesktop({
                             />
 
                             {/* Helipad */}
-                            <div aria-hidden className="
+                            {/* <div aria-hidden className="
 pointer-events-none absolute inset-x-0
-bottom-[22%]
+bottom-[14%]
 xl:bottom-[26%]
-2xl:bottom-0
-z-36 flex justify-center
-">
+2xl:bottom-[8%]
+z-36 flex justify-center">
                                 <div className="lg:w-[50%]
-xl:w-[60%] max-w-225">
+xl:w-[50%] max-w-225">
                                     <Image src="/images/hero-heli-pad.png" alt="" width={800} height={160}
                                         className="w-full object-contain opacity-90" />
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* Text — scroll driven */}
                             <div className="relative z-40 flex min-h-0 flex-col p-6">
