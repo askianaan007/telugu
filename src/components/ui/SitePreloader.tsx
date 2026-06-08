@@ -12,15 +12,8 @@ const EXIT_DURATION_MS = 800
 export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
     const [phase, setPhase] = useState<Phase>('loading')
     const [progress, setProgress] = useState(0)
-    const [tick2, setTick2] = useState(0)
     const startTimeRef = useRef(Date.now())
     const reducedMotion = useRef(false)
-
-    // Animate the rotating arc
-    useEffect(() => {
-        const id = setInterval(() => setTick2((t) => t + 1), 16)
-        return () => clearInterval(id)
-    }, [])
 
     useEffect(() => {
         reducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -57,7 +50,6 @@ export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
 
     if (phase === 'done') return null
 
-    const angle = (tick2 * 1.8) % 360
     const pct = Math.round(progress)
 
     // SVG arc for progress ring
@@ -121,13 +113,16 @@ export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
             }}>
                 {/* Progress ring + logo */}
                 <div style={{ position: 'relative', width: 176, height: 176, marginBottom: 32 }}>
-                    {/* Outer ring SVG */}
-                    <svg width="176" height="176" style={{ position: 'absolute', inset: 0, transform: `rotate(${angle}deg)`, transition: 'none' }}>
+                    {/* Outer ring SVG — shimmer arc uses CSS animation instead of JS-driven rotation */}
+                    <svg width="176" height="176" style={{ position: 'absolute', inset: 0 }}>
+                        <style>{`@keyframes preloader-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
                         <circle cx="88" cy="88" r="84" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-                        {/* Rotating shimmer arc */}
-                        <circle cx="88" cy="88" r="84" fill="none"
-                            stroke="url(#shimmerGrad)" strokeWidth="1.5"
-                            strokeDasharray="60 480" strokeLinecap="round" />
+                        {/* Rotating shimmer arc — CSS animation, no JS state */}
+                        <g style={{ transformOrigin: '88px 88px', animation: 'preloader-spin 3s linear infinite' }}>
+                            <circle cx="88" cy="88" r="84" fill="none"
+                                stroke="url(#shimmerGrad)" strokeWidth="1.5"
+                                strokeDasharray="60 480" strokeLinecap="round" />
+                        </g>
                         <defs>
                             <linearGradient id="shimmerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="rgba(202,139,55,0)" />

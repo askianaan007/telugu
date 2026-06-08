@@ -1,8 +1,7 @@
 'use client'
 
-import { useMotionValueEvent, useScroll } from 'framer-motion'
 import Image from 'next/image'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 
 import { Section } from '@/components/layout/Section'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
@@ -27,13 +26,8 @@ export function OurModelsDesktop() {
     const textLayerRef = useRef<HTMLDivElement>(null)
     const cardsLayerRef = useRef<HTMLDivElement>(null)
     const reduceMotion = usePrefersReducedMotion()
-
-    const { scrollYProgress } = useScroll({
-        target: scrollTrackRef,
-        offset: ['start start', 'end end'],
-    })
-    const [ringDeg, setRingDeg] = useState(0)
-    useMotionValueEvent(scrollYProgress, 'change', (v) => setRingDeg(v * 360))
+    // Ref-based ring degree — avoids React re-renders on every scroll tick
+    const ringDegRef = useRef(0)
 
     useLayoutEffect(() => {
         const root = sectionRef.current
@@ -95,6 +89,9 @@ export function OurModelsDesktop() {
                     gsap.set(cardsLayer, { autoAlpha: 1 })
                     gsap.set(backdropDim, { opacity: 0.22, filter: 'blur(8px)' })
 
+                    // quickSetter mutates badge CSS var directly — zero React renders during scroll
+                    const ringSetters = [...root.querySelectorAll<HTMLElement>('[data-progress-badge]')]
+
                     const tl = gsap.timeline({
                         defaults: { ease: 'none' },
                         scrollTrigger: {
@@ -105,6 +102,13 @@ export function OurModelsDesktop() {
                             scrub: 0.9,
                             invalidateOnRefresh: true,
                             fastScrollEnd: true,
+                            onUpdate(self) {
+                                ringDegRef.current = self.progress * 360
+                                // Directly update CSS custom property on badge elements
+                                ringSetters.forEach((el) => {
+                                    el.style.setProperty('--ring-deg', `${ringDegRef.current}deg`)
+                                })
+                            },
                         },
                     })
 
@@ -337,7 +341,6 @@ export function OurModelsDesktop() {
                                         <ModelDetailBody
                                             model={model}
                                             stepIndex={index}
-                                            ringAngleDeg={ringDeg}
                                             imagePriority={index === 0}
                                             showCta={false}
                                             hideCenterImage

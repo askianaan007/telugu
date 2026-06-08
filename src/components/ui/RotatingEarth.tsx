@@ -124,11 +124,12 @@ export default function RotatingEarth({
     if (!context) return
 
     let cancelled = false
+    // Cap DPR to 1.5 — prevents enormous canvas on 3x retina (9x pixel count)
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     const containerWidth = squareSize
     const containerHeight = squareSize
     const radius = Math.min(containerWidth, containerHeight) / 2.15
 
-    const dpr = window.devicePixelRatio || 1
     canvas.width = containerWidth * dpr
     canvas.height = containerHeight * dpr
     canvas.style.width = `${containerWidth}px`
@@ -189,6 +190,9 @@ export default function RotatingEarth({
       context.lineWidth = 0.8 * sf
       context.stroke()
 
+      // Batch ALL dots into a single path — eliminates thousands of individual draw calls
+      context.beginPath()
+      const dotR = 1.1 * sf
       allDots.forEach(({ lng, lat }) => {
         const projected = projection([lng, lat])
         if (
@@ -198,25 +202,28 @@ export default function RotatingEarth({
           projected[1] >= 0 &&
           projected[1] <= containerHeight
         ) {
-          context.beginPath()
-          context.arc(projected[0], projected[1], 1.1 * sf, 0, 2 * Math.PI)
-          context.fillStyle = dotColor
-          context.fill()
+          context.moveTo(projected[0] + dotR, projected[1])
+          context.arc(projected[0], projected[1], dotR, 0, 2 * Math.PI)
         }
       })
+      context.fillStyle = dotColor
+      context.fill()
     }
 
     const rotation: [number, number, number] = [0, -15, 0]
+    let isVisible = false
 
     const startSpin = (landFeatures: LandFeatureCollection, allDots: DotData[]) => {
       const tick = () => {
+        if (!isVisible || cancelled) { rafRef.current = 0; return }
         rotation[0] = (rotation[0] + rotationSpeed) % 360
         projection.rotate(rotation)
         render(landFeatures, allDots)
         rafRef.current = requestAnimationFrame(tick)
       }
       cancelAnimationFrame(rafRef.current)
-      rafRef.current = requestAnimationFrame(tick)
+      if (isVisible) rafRef.current = requestAnimationFrame(tick)
+      return tick
     }
 
     const boot = async () => {
@@ -244,7 +251,26 @@ export default function RotatingEarth({
         const { land: landFeatures, dots: allDots } = landDataRef.current
 
         render(landFeatures, allDots)
-        startSpin(landFeatures, allDots)
+        const tick = startSpin(landFeatures, allDots)
+
+        // Pause RAF when globe is off-screen — was running forever even at top of page
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            isVisible = entry?.isIntersecting ?? false
+            if (isVisible && rafRef.current === 0 && !cancelled) {
+              rafRef.current = requestAnimationFrame(tick)
+            } else if (!isVisible) {
+              cancelAnimationFrame(rafRef.current)
+              rafRef.current = 0
+            }
+          },
+          { threshold: 0 }
+        )
+        observer.observe(canvas)
+
+        // Store cleanup
+        const prevCancel = cancelled
+        return () => { observer.disconnect() }
       } catch {
         if (!cancelled) {
           setError('Failed to load globe data')
@@ -253,12 +279,14 @@ export default function RotatingEarth({
       }
     }
 
-    boot()
+    let observerCleanup: (() => void) | undefined
+    boot().then((cleanup) => { observerCleanup = cleanup })
 
     return () => {
       cancelled = true
       cancelAnimationFrame(rafRef.current)
       rafRef.current = 0
+      observerCleanup?.()
     }
   }, [squareSize, dotColor, oceanColor, gridColor, rotationSpeed])
 

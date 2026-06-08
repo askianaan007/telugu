@@ -20,31 +20,44 @@ export function HeliportSolutionsDesktop() {
             const root = gridRef.current
             if (!root || reduceMotion) return
 
-            const ctx = gsap.context(() => {
-                const cards = root.querySelectorAll<HTMLElement>(
-                    '[data-heliport-region="lg"] [data-heliport-card]',
-                )
-                cards.forEach((card) => {
-                    gsap.fromTo(
-                        card,
-                        { y: 48, scale: 0.96 },
-                        {
+            const cards = Array.from(
+                root.querySelectorAll<HTMLElement>('[data-heliport-region="lg"] [data-heliport-card]'),
+            )
+            if (cards.length === 0) return
+
+            // Set initial state for all cards at once — single GSAP call
+            gsap.set(cards, { y: 48, scale: 0.96 })
+
+            // One IntersectionObserver-based approach: batch reveals instead of
+            // one ScrollTrigger per card (was creating N separate ST instances)
+            const io = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return
+                        const card = entry.target as HTMLElement
+                        io.unobserve(card)
+
+                        // Use a single short scrubbed tween per card triggered on first
+                        // intersection — avoids N constantly-active ScrollTriggers during scroll
+                        gsap.to(card, {
                             y: 0,
                             scale: 1,
-                            ease: 'none',
-                            scrollTrigger: {
-                                trigger: card,
-                                start: 'top 88%',
-                                end: 'top 42%',
-                                scrub: 0.75,
-                                invalidateOnRefresh: true,
-                            },
-                        },
-                    )
-                })
-            }, root)
+                            duration: 0.65,
+                            ease: 'power2.out',
+                            overwrite: true,
+                        })
+                    })
+                },
+                // Trigger when card top is 88% down the viewport
+                { rootMargin: '0px 0px -12% 0px', threshold: 0 },
+            )
 
-            return () => ctx.revert()
+            cards.forEach((card) => io.observe(card))
+
+            return () => {
+                io.disconnect()
+                gsap.set(cards, { clearProps: 'y,scale' })
+            }
         },
         { scope: sectionRef, dependencies: [reduceMotion] },
     )

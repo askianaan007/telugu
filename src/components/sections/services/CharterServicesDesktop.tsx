@@ -145,7 +145,7 @@ export function CharterServicesDesktop() {
             const revealStack = () => {
                 const metrics = applyStackMetrics()
                 setCardPositions(metrics)
-                ScrollTrigger.refresh(true)
+                ScrollTrigger.refresh()
                 gsap.set(stage, { autoAlpha: 1 })
                 stage.setAttribute('data-ready', '')
             }
@@ -157,7 +157,7 @@ export function CharterServicesDesktop() {
                 } else {
                     applyStackMetrics()
                 }
-                ScrollTrigger.refresh(true)
+                ScrollTrigger.refresh()
             }
 
             window.addEventListener('resize', refreshLayout)

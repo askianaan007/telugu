@@ -2,22 +2,20 @@
 
 // src/components/sections/heliport/HeliportSolutionsTablet.tsx
 // ─────────────────────────────────────────────────────────────
-// Tablet (768px – 1023px): 2-column staggered layout, GSAP scrub reveal,
+// Tablet (768px – 1023px): 2-column staggered layout, GSAP reveal,
 // sticky header, bottom gradient decorators.
 
-import { motion as m } from 'framer-motion'
 import { useRef } from 'react'
-import Image from 'next/image'
 
 import { Container } from '@/components/layout/Container'
 import { Section } from '@/components/layout/Section'
 import { heliportSolutionsByMdColumn } from '@/data/heliportSolutions'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { gsap, useGSAP } from '@/lib/animations/gsap'
-import { fadeInUp, staggerContainer } from '@/lib/animations/motion'
 import { cn } from '@/lib/utils'
 import {
     HeliportGradientDecorators,
+    HeliportSectionHeader,
     HeliportSolutionCard,
 } from './heliportShared'
 
@@ -31,30 +29,39 @@ export function HeliportSolutionsTablet() {
             const root = gridRef.current
             if (!root || reduceMotion) return
 
-            const cards = root.querySelectorAll<HTMLElement>('[data-heliport-card]')
+            const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-heliport-card]'))
+            if (cards.length === 0) return
 
-            const ctx = gsap.context(() => {
-                cards.forEach((card) => {
-                    gsap.fromTo(
-                        card,
-                        { y: 48, scale: 0.96 },
-                        {
+            // Single batch set — one GSAP call for all cards
+            gsap.set(cards, { y: 48, scale: 0.96 })
+
+            // One IntersectionObserver replaces N active ScrollTrigger scrub instances.
+            // Fires a one-shot animation per card on first intersection — zero per-frame
+            // scrub work during scroll.
+            const io = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return
+                        const card = entry.target as HTMLElement
+                        io.unobserve(card)
+                        gsap.to(card, {
                             y: 0,
                             scale: 1,
-                            ease: 'none',
-                            scrollTrigger: {
-                                trigger: card,
-                                start: 'top 88%',
-                                end: 'top 42%',
-                                scrub: 0.75,
-                                invalidateOnRefresh: true,
-                            },
-                        },
-                    )
-                })
-            }, root)
+                            duration: 0.65,
+                            ease: 'power2.out',
+                            overwrite: true,
+                        })
+                    })
+                },
+                { rootMargin: '0px 0px -12% 0px', threshold: 0 },
+            )
 
-            return () => ctx.revert()
+            cards.forEach((card) => io.observe(card))
+
+            return () => {
+                io.disconnect()
+                gsap.set(cards, { clearProps: 'y,scale' })
+            }
         },
         { scope: sectionRef, dependencies: [reduceMotion] },
     )
@@ -73,49 +80,7 @@ export function HeliportSolutionsTablet() {
             <Container className="max-w-base z-section-content relative">
                 {/* Sticky header */}
                 <div className="bg-brand-navy/95 sticky top-[120px] z-10 pt-6 pb-10 backdrop-blur-sm">
-                    <m.header
-                        variants={staggerContainer(0.1, 0.06)}
-                        initial={reduceMotion ? false : 'hidden'}
-                        whileInView={reduceMotion ? undefined : 'visible'}
-                        viewport={{ once: false, amount: 0.35, margin: '0px 0px -8% 0px' }}
-                        className="mx-auto flex max-w-[1024px] flex-col items-center gap-4 text-center sm:gap-5"
-                    >
-                        <m.div variants={fadeInUp} className="flex flex-col items-center gap-2.5">
-                            <span className="text-brand-white inline-flex items-center gap-2">
-                                <Image
-                                    src="/images/gold-asterisk.svg"
-                                    width={14} height={14} alt=""
-                                    className="h-[14px] w-[14px] shrink-0" aria-hidden
-                                />
-                                <span className="[font-family:var(--font-geist)] text-[14px] leading-[normal] font-semibold tracking-[0.2em] uppercase">
-                                    Solution
-                                </span>
-                            </span>
-                            <Image
-                                src="/images/header-line-transparent.svg"
-                                width={364} height={12} alt=""
-                                className="h-auto w-full max-w-[220px] shrink-0" aria-hidden
-                            />
-                        </m.div>
-                        <m.h2
-                            variants={fadeInUp}
-                            className={cn(
-                                'text-brand-white [font-family:var(--font-halant)] font-normal tracking-[-0.02em] text-balance uppercase',
-                                'text-[clamp(2rem,3vw+1.1rem,3.25rem)] leading-[1.08]',
-                            )}
-                        >
-                            <span className="block">Comprehensive</span>
-                            <span className="block">Heliport Solutions</span>
-                        </m.h2>
-                        <m.p
-                            variants={fadeInUp}
-                            className="max-w-[711px] [font-family:var(--font-geist)] text-[16px] leading-relaxed font-normal text-white/80 sm:text-[18px]"
-                        >
-                            Telugu Airlines specializes in providing end-to-end heliport solutions,
-                            encompassing everything from initial concept design to final execution
-                            and certification processes.
-                        </m.p>
-                    </m.header>
+                    <HeliportSectionHeader reduceMotion={reduceMotion} />
                 </div>
 
                 {/* 2-column staggered grid */}

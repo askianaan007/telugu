@@ -181,6 +181,41 @@
   }
 }
 
+/* ── WhyChoose connector pulse animations (moved from dangerouslySetInnerHTML) ── */
+.why-choose-path-pulse {
+    stroke-dasharray: 0.18 0.82;
+    stroke-dashoffset: 1;
+    animation: whyChoosePulse 2.8s linear infinite;
+}
+
+@keyframes whyChoosePulse {
+    0%   { stroke-dashoffset: 1; opacity: 0; }
+    8%   { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+.why-choose-arrival-core {
+    animation: whyChooseArrivalCore 2.8s linear infinite;
+}
+
+@keyframes whyChooseArrivalCore {
+    0%, 85%  { opacity: 0; r: 2.4px; }
+    90%      { opacity: 1; r: 3.6px; }
+    100%     { opacity: 0; r: 2.4px; }
+}
+
+.why-choose-arrival-ring {
+    animation: whyChooseArrivalRing 2.8s linear infinite;
+}
+
+@keyframes whyChooseArrivalRing {
+    0%, 85%  { opacity: 0; r: 2.4px; }
+    90%      { opacity: 0.65; r: 6px; }
+    100%     { opacity: 0; r: 9px; }
+}
+
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;

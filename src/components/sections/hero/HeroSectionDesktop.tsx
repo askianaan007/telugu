@@ -104,12 +104,14 @@ export function HeroSectionDesktop({
 
     // ── Scroll motion ──────────────────────────────────────────────────────────
 
+    // Single spring drives all hero scroll animations — was 2 separate springs (extra physics per frame)
     const { scrollYProgress } = useScroll({
         target: containerRef,
         offset: ['start start', 'end start'],
     })
-    const smooth = useSpring(scrollYProgress, { stiffness: 110, damping: 28, mass: 0.35 })
-    const textSpring = useSpring(scrollYProgress, { stiffness: 260, damping: 36, mass: 0.2 })
+    // One spring for all transforms — previously had 2 springs firing simultaneously
+    const smooth = useSpring(scrollYProgress, { stiffness: 130, damping: 30, mass: 0.3 })
+    // lgScrollDrive derived directly off smooth (removed intermediate MotionValue)
     const lgScrollDrive = useTransform(smooth, [0, 0.07, 1], [0, 0, 1])
 
     const bgY = useTransform(smooth, [0, 1], ['0%', '18%'])
@@ -118,10 +120,10 @@ export function HeroSectionDesktop({
     const circleScale = useTransform(smooth, [0, 1], [1.04, 1.0])
 
     const textY = useTransform(lgScrollDrive, [0, 1], ['0%', '22%'])
-    const textOpacity = useTransform(textSpring, [0, 0.32, 0.5, 0.66, 0.8], [1, 0.96, 0.5, 0.12, 0])
-    const titleColor = useTransform(textSpring, [0, 0.32, 0.5, 0.66], ['#1C1C1C', '#353533', '#7A7876', '#B5B3B1'])
-    const bodyColor = useTransform(textSpring, [0, 0.32, 0.5, 0.66], ['#3F3F3E', '#555350', '#8E8C89', '#B9B7B4'])
-    const ctaOpacity = useTransform(textSpring, [0, 0.22, 0.38, 0.52], [1, 0.78, 0.32, 0])
+    const textOpacity = useTransform(smooth, [0, 0.32, 0.5, 0.66, 0.8], [1, 0.96, 0.5, 0.12, 0])
+    const titleColor = useTransform(smooth, [0, 0.32, 0.5, 0.66], ['#1C1C1C', '#353533', '#7A7876', '#B5B3B1'])
+    const bodyColor = useTransform(smooth, [0, 0.32, 0.5, 0.66], ['#3F3F3E', '#555350', '#8E8C89', '#B9B7B4'])
+    const ctaOpacity = useTransform(smooth, [0, 0.22, 0.38, 0.52], [1, 0.78, 0.32, 0])
     const ctaPointer = useTransform(ctaOpacity, (v) => v < 0.05 ? 'none' : 'auto')
 
     const heliLift = useTransform(smooth, [0, 0.55, 1], ['38vh', '22vh', '22vh'])

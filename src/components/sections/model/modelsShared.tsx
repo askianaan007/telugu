@@ -109,13 +109,25 @@ function StatRow({ stat, side, className }: { stat: { value: string; label: stri
     )
 }
 
-export function ModelProgressBadge({ stepIndex, total, ringAngleDeg }: { stepIndex: number; total: number; ringAngleDeg: number }) {
+export function ModelProgressBadge({ stepIndex, total }: { stepIndex: number; total: number }) {
     const safe = Math.min(total - 1, Math.max(0, stepIndex))
     const arcDeg = 360 / total
-    const progressConic = `radial-gradient(circle at center, #F0F1F2 40%, transparent 90%), conic-gradient(from ${ringAngleDeg}deg, #7EB8EA 0deg, #B6D1F3 ${arcDeg}deg, transparent ${arcDeg}deg, transparent 360deg)`
     return (
-        <div className="relative box-border h-[72px] w-[72px] shrink-0 rounded-full border border-[#D9D9D9] xl:h-[100px] xl:w-[100px]" aria-hidden>
-            <div className="absolute inset-0 rounded-full" style={{ background: progressConic }} />
+        <div
+            data-progress-badge
+            className="relative box-border h-[72px] w-[72px] shrink-0 rounded-full border border-[#D9D9D9] xl:h-[100px] xl:w-[100px]"
+            style={{
+                // --ring-deg is set directly by GSAP on scroll, avoiding React re-renders
+                ['--ring-deg' as string]: '0deg',
+            }}
+            aria-hidden
+        >
+            <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                    background: `radial-gradient(circle at center, #F0F1F2 40%, transparent 90%), conic-gradient(from var(--ring-deg, 0deg), #7EB8EA 0deg, #B6D1F3 ${arcDeg}deg, transparent ${arcDeg}deg, transparent 360deg)`,
+                }}
+            />
             <div className="absolute inset-[6px] flex items-center justify-center rounded-full border border-[#C9C9C9] bg-[rgba(240,241,242,0.2)] xl:inset-[10px]">
                 <span className="[font-family:var(--font-halant)] text-xl leading-normal text-[#121F2F] tabular-nums xl:text-[30px]">
                     {safe + 1}/{total}
@@ -137,13 +149,12 @@ export function OurModelsBookCta({ className }: { className?: string }) {
 type ModelDetailBodyProps = {
     model: (typeof OUR_MODELS)[number]
     stepIndex: number
-    ringAngleDeg: number
     imagePriority?: boolean
     showCta?: boolean
     hideCenterImage?: boolean
 }
 
-export function ModelDetailBody({ model, stepIndex, ringAngleDeg, imagePriority, showCta = false, hideCenterImage = false }: ModelDetailBodyProps) {
+export function ModelDetailBody({ model, stepIndex, imagePriority, showCta = false, hideCenterImage = false }: ModelDetailBodyProps) {
     return (
         <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-3 lg:gap-2">
             <div className={cn(
@@ -167,7 +178,7 @@ export function ModelDetailBody({ model, stepIndex, ringAngleDeg, imagePriority,
                     'max-lg:flex-row max-lg:items-start max-lg:justify-between max-lg:gap-4',
                     'lg:flex-row lg:items-start lg:justify-end lg:gap-8',
                 )}>
-                    <ModelProgressBadge stepIndex={stepIndex} total={OUR_MODELS.length} ringAngleDeg={ringAngleDeg} />
+                    <ModelProgressBadge stepIndex={stepIndex} total={OUR_MODELS.length} />
                     <p className="max-w-95 self-start text-left [font-family:var(--font-geist)] text-base leading-snug text-[#3F3F3E] max-lg:text-left lg:max-w-[min(100%,20rem)] lg:self-end lg:text-right lg:text-sm">
                         {model.shortDescription}
                     </p>
@@ -243,13 +254,12 @@ export function OurModelsMobileStack({ showOnLarge }: { showOnLarge: boolean }) 
                     className={cn(
                         'relative z-10 flex flex-col gap-6 overflow-hidden rounded-2xl max-lg:min-h-0',
                         'border-brand-charcoal/10 border bg-white/50 px-4 py-6 shadow-sm backdrop-blur-sm sm:px-6',
-                        'will-change-[transform,opacity,filter]',
+                        'will-change-[transform,opacity]',
                     )}
                 >
                     <ModelDetailBody
                         model={model}
                         stepIndex={index}
-                        ringAngleDeg={(index + 1) * 100}
                         imagePriority={index === 0}
                         showCta={false}
                     />

@@ -51,7 +51,7 @@ export function GlobalPresenceDesktop() {
                             variants={staggerContainer(0.1, 0.06)}
                             initial={reduceMotion ? false : 'hidden'}
                             whileInView={reduceMotion ? undefined : 'visible'}
-                            viewport={{ once: false, amount: 0.35, margin: '0px 0px -8% 0px' }}
+                            viewport={{ once: true, amount: 0.35, margin: '0px 0px -8% 0px' }}
                             className="flex w-full shrink-0 flex-col gap-5 lg:w-[40%] lg:max-w-[min(100%,480px)] lg:self-start lg:pt-2"
                         >
                             <m.div variants={fadeInUp} className="flex flex-col items-start gap-2.5">

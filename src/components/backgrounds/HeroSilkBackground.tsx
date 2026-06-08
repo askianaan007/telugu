@@ -28,7 +28,7 @@ export function HeroSilkBackground({ reduceMotion, className }: HeroSilkBackgrou
             vx: number
         }
 
-        const COUNT = reduceMotion ? 0 : 12
+        const COUNT = reduceMotion ? 0 : 7
         const wisps: Wisp[] = Array.from({ length: COUNT }, () => ({
             x: Math.random() * 1.4 - 0.2,
             y: Math.random(),
@@ -74,7 +74,9 @@ export function HeroSilkBackground({ reduceMotion, className }: HeroSilkBackgrou
             if (!visibleRef.current) { rafRef.current = 0; return }
 
             frameCount++
-            if (frameCount % 2 === 0) {
+            // Run at ~20fps — background canvas is imperceptible at this rate,
+            // but eliminates 2/3 of gradient allocations vs running at 60fps
+            if (frameCount % 3 !== 0) {
                 rafRef.current = requestAnimationFrame(tick)
                 return
             }

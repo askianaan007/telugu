@@ -6,7 +6,9 @@
 
 import React from 'react'
 import Image from 'next/image'
+import { motion as m } from 'framer-motion'
 import type { HeliportCardVariant, HeliportSolution } from '@/data/heliportSolutions'
+import { fadeInUp, staggerContainer } from '@/lib/animations/motion'
 import { cn } from '@/lib/utils'
 
 // ─── Surface helpers ──────────────────────────────────────────────────────────
@@ -14,11 +16,20 @@ import { cn } from '@/lib/utils'
 export function heliportCardSurface(variant: HeliportCardVariant) {
     switch (variant) {
         case 'bg1':
-            return 'border border-white/12 bg-[radial-gradient(circle_8rem_at_0_0,rgba(255,255,255,0.07)_0%,transparent_60%),rgba(255,255,255,0.02)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_24px_60px_-15px_rgba(0,0,0,0.35)] backdrop-blur-xl'
+            return `
+border border-white/15
+bg-[rgba(10,28,54,0.22)]
+backdrop-blur-lg
+backdrop-saturate-150
+shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_24px_60px_-15px_rgba(0,0,0,0.35)]
+`
         case 'bg2':
-            return 'border border-white/40 bg-white/85 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_24px_60px_-15px_rgba(9,9,11,0.15)] backdrop-blur-xl'
+            // backdrop-blur-xl → backdrop-blur-sm: reduces compositing cost dramatically
+            // bg-white/85 on dark bg already looks opaque — heavy blur is not perceptible
+            return 'border border-white/40 bg-white/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_24px_60px_-15px_rgba(9,9,11,0.15)] backdrop-blur-sm'
         case 'bg3':
-            return 'border border-white/25 bg-linear-to-r from-brand-gold-start/85 via-brand-gold-mid/90 to-brand-gold-start/85 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),0_24px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-xl'
+            // backdrop-blur-xl → backdrop-blur-sm: gold gradient is fully opaque
+            return 'border border-white/25 bg-linear-to-r from-brand-gold-start/85 via-brand-gold-mid/90 to-brand-gold-start/85 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),0_24px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-sm'
         default:
             return ''
     }
@@ -34,6 +45,10 @@ export function heliportDescriptionClass(variant: HeliportCardVariant) {
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
+// Static class strings — defined outside component to avoid re-creation on every render
+const CARD_BASE = 'rounded-hero flex h-auto w-full max-w-[min(100%,326px)] flex-col items-start gap-5 px-[30px] py-[40px] md:max-w-none lg:w-[300px] lg:max-w-none xl:w-[326px]'
+const CARD_WILL_CHANGE = 'will-change-transform'
+
 export function HeliportSolutionCard({
     solution,
     enableScrollReveal,
@@ -45,12 +60,55 @@ export function HeliportSolutionCard({
         <article
             {...(enableScrollReveal ? { 'data-heliport-card': true } : {})}
             className={cn(
-                'rounded-hero flex h-auto w-full max-w-[min(100%,326px)] flex-col items-start gap-5 px-[30px] py-[40px] md:max-w-none lg:w-[300px] lg:max-w-none xl:w-[326px]',
-                enableScrollReveal && 'will-change-[transform]',
+                'relative overflow-hidden',
+                CARD_BASE,
+                enableScrollReveal && CARD_WILL_CHANGE,
                 heliportCardSurface(solution.variant),
             )}
         >
-            <div className="relative h-20 w-[85px] shrink-0">
+            {/* Glass highlight overlay */}
+            <div
+                aria-hidden
+                className="
+        pointer-events-none
+        absolute
+        inset-0
+        rounded-hero
+        bg-[linear-gradient(180deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0.04)_35%,rgba(255,255,255,0.01)_100%)]
+    "
+            />
+
+            {/* Top reflection */}
+            <div
+                aria-hidden
+                className="
+        pointer-events-none
+        absolute
+        top-0
+        right-0
+        h-[90px]
+        w-[140px]
+        rounded-full
+        bg-white/8 blur-3xl
+    "
+            />
+
+            {/* Corner glow */}
+            <div
+                aria-hidden
+                className="
+        pointer-events-none
+        absolute
+        top-0
+        left-0
+        h-[120px]
+        w-[120px]
+        rounded-full
+        bg-white/8
+        blur-3xl
+    "
+            />
+            <div className="relative z-10 h-20 w-[85px] shrink-0">
                 <Image
                     src={solution.iconSrc}
                     alt=""
@@ -60,13 +118,13 @@ export function HeliportSolutionCard({
                 />
             </div>
             <h3 className={cn(
-                '[font-family:var(--font-halant)] text-[28px] leading-[30px] font-normal text-balance uppercase',
+                'relative z-10 [font-family:var(--font-halant)] text-[28px] leading-[30px] font-normal text-balance uppercase',
                 heliportTitleClass(solution.variant),
             )}>
                 {solution.title}
             </h3>
             <p className={cn(
-                '[font-family:var(--font-geist)] text-[18px] leading-normal font-normal',
+                'relative z-10 [font-family:var(--font-geist)] text-[18px] leading-normal font-normal',
                 heliportDescriptionClass(solution.variant),
             )}>
                 {solution.description}
@@ -75,19 +133,17 @@ export function HeliportSolutionCard({
     )
 }
 
-// ─── Section header (shared across all tiers) ─────────────────────────────────
+// ─── Section header (shared across mobile + tablet tiers) ─────────────────────
 
+// Static import instead of dynamic require() — was re-requiring framer-motion on every render
 export function HeliportSectionHeader({ reduceMotion }: { reduceMotion: boolean }) {
-    // Import lazily to keep this file framework-agnostic at type level
-    const { motion: m } = require('framer-motion') as typeof import('framer-motion')
-    const { fadeInUp, staggerContainer } = require('@/lib/animations/motion') as typeof import('@/lib/animations/motion')
-
     return (
         <m.header
             variants={staggerContainer(0.1, 0.06)}
             initial={reduceMotion ? false : 'hidden'}
             whileInView={reduceMotion ? undefined : 'visible'}
-            viewport={{ once: false, amount: 0.35, margin: '0px 0px -8% 0px' }}
+            // once: true — was once: false, re-triggering animation on every scroll-past
+            viewport={{ once: true, amount: 0.35, margin: '0px 0px -8% 0px' }}
             className="mx-auto flex max-w-[1024px] flex-col items-center gap-4 text-center sm:gap-5"
         >
             <m.div variants={fadeInUp} className="flex flex-col items-center gap-2.5">
