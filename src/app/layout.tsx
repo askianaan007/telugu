@@ -1,13 +1,15 @@
-import type { Metadata, Viewport } from 'next'
-import type { ReactNode } from 'react'
-import { Geist, Halant, Roboto_Mono } from 'next/font/google'
+import { Halant, Roboto_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 import LenisProvider from '@/providers/LenisProvider'
+import { MotionProviders } from '@/providers/MotionProviders'
 import { SiteNavScrollProvider } from '@/providers/SiteNavScrollProvider'
+import { PreloaderProvider } from '@/providers/PreloaderProvider'
+import type { Metadata, Viewport } from 'next'
+import type { ReactNode } from 'react'
 import './globals.css'
 
 const satoshi = localFont({
-  variable: '--font-satoshi' ,
+  variable: '--font-satoshi',
   display: 'swap',
   preload: true,
   fallback: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
@@ -22,6 +24,7 @@ const robotoMono = Roboto_Mono({
   subsets: ['latin'],
   display: 'swap',
   weight: ['400', '500'],
+  preload: false,
 })
 
 const halant = Halant({
@@ -29,21 +32,12 @@ const halant = Halant({
   subsets: ['latin'],
   display: 'swap',
   weight: ['400', '500', '600', '700'],
-})
-
-const geist = Geist({
-  variable: '--font-geist',
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '500', '600', '700'],
+  preload: false,
 })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://teluguairlines.com'),
-  title: {
-    default: 'Telugu Airlines | Premium Helicopter Charter & Heliport Solutions',
-    template: '%s | Telugu Airlines',
-  },
+  title: { default: 'Telugu Airlines | Premium Helicopter Charter & Heliport Solutions', template: '%s | Telugu Airlines' },
   description: 'Telugu Airlines delivers premium helicopter charter experiences, executive rotorcraft mobility, and end-to-end heliport infrastructure solutions across India.',
   keywords: ['Telugu Airlines', 'helicopter charter', 'heliport solutions', 'private aviation', 'executive helicopter', 'aviation services India'],
   authors: [{ name: 'Telugu Airlines' }],
@@ -54,33 +48,35 @@ export const metadata: Metadata = {
     siteName: 'Telugu Airlines',
     type: 'website',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Telugu Airlines',
-    description: 'Premium helicopter charter and heliport infrastructure.',
-  },
+  twitter: { card: 'summary_large_image', title: 'Telugu Airlines', description: 'Premium helicopter charter and heliport infrastructure.' },
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  minimumScale: 1,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: light)', color: '#f0f1f2' },
     { media: '(prefers-color-scheme: dark)', color: '#09090b' },
   ],
 }
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${satoshi.variable} ${robotoMono.variable} ${halant.variable} ${geist.variable} h-full antialiased`}
+      className={`${satoshi.variable} ${robotoMono.variable} ${halant.variable} antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full font-sans">
+      <body className="bg-brand-surface text-brand-black font-sans">
         <LenisProvider>
-          <SiteNavScrollProvider>
-            {children}
-          </SiteNavScrollProvider>
+          <MotionProviders>
+            <SiteNavScrollProvider>
+              <PreloaderProvider>
+                {children}
+              </PreloaderProvider>
+            </SiteNavScrollProvider>
+          </MotionProviders>
         </LenisProvider>
       </body>
     </html>

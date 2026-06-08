@@ -9,23 +9,20 @@
 
 import { useSyncExternalStore } from 'react'
 import { HeliportSolutionsDesktop } from './heliport/HeliportSolutionsDesktop'
-import { HeliportSolutionsTablet }  from './heliport/HeliportSolutionsTablet'
-import { HeliportSolutionsMobile }  from './heliport/HeliportSolutionsMobile'
+import { HeliportSolutionsTablet } from './heliport/HeliportSolutionsTablet'
+import { HeliportSolutionsMobile } from './heliport/HeliportSolutionsMobile'
 
 type HeliportTier = 'mobile' | 'tablet' | 'desktop'
 
 function getHeliportTier(): HeliportTier {
     if (window.matchMedia('(min-width: 1024px)').matches) return 'desktop'
-    if (window.matchMedia('(min-width: 768px)').matches)  return 'tablet'
+    if (window.matchMedia('(min-width: 768px)').matches) return 'tablet'
     return 'mobile'
 }
 
 const heliportTierMqs =
     typeof window !== 'undefined'
-        ? [
-            window.matchMedia('(min-width: 768px)'),
-            window.matchMedia('(min-width: 1024px)'),
-        ]
+        ? [window.matchMedia('(min-width: 768px)'), window.matchMedia('(min-width: 1024px)')]
         : []
 
 const subscribeHeliportTier = (cb: () => void) => {
@@ -33,18 +30,12 @@ const subscribeHeliportTier = (cb: () => void) => {
     return () => heliportTierMqs.forEach((mq) => mq.removeEventListener('change', cb))
 }
 
-const heliportTierSnapshot       = (): HeliportTier =>
-    typeof window !== 'undefined' ? getHeliportTier() : 'desktop'
+const heliportTierSnapshot = (): HeliportTier => typeof window !== 'undefined' ? getHeliportTier() : 'desktop'
 const heliportTierServerSnapshot = (): HeliportTier => 'desktop'
 
 export function HeliportSolutionsSection() {
-    const tier = useSyncExternalStore(
-        subscribeHeliportTier,
-        heliportTierSnapshot,
-        heliportTierServerSnapshot,
-    )
-
+    const tier = useSyncExternalStore(subscribeHeliportTier, heliportTierSnapshot, heliportTierServerSnapshot)
     if (tier === 'desktop') return <HeliportSolutionsDesktop />
-    if (tier === 'tablet')  return <HeliportSolutionsTablet  />
-    return                         <HeliportSolutionsMobile  />
+    if (tier === 'tablet') return <HeliportSolutionsTablet />
+    return <HeliportSolutionsMobile />
 }
