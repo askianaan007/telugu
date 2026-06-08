@@ -7,7 +7,7 @@ import { SiteNavScrollProvider } from '@/providers/SiteNavScrollProvider'
 import './globals.css'
 
 const satoshi = localFont({
-  variable: '--font-satoshi',
+  variable: '--font-satoshi' ,
   display: 'swap',
   preload: true,
   fallback: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
