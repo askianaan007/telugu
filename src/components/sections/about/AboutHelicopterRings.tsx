@@ -18,7 +18,7 @@ export const AboutHelicopterRings = forwardRef<HTMLDivElement, AboutHelicopterRi
                     className
                 )}
             >
-                <div className="relative isolate size-[min(76vw,260px)] shrink-0 sm:size-[min(76vw,260px)] md:size-[min(82vw,570px)] lg:size-[min(84vw,510px)] xl:size-[min(86vw,560px)] contain-layout">
+                <div className="relative isolate size-[min(76vw,260px)] shrink-0 sm:size-[min(76vw,260px)] md:size-[min(82vw,570px)] lg:size-[min(84vw,510px)] xl:size-[min(86vw,560px)] contain-layout" style={{ transform: 'translateY(30%)' }}>
                     <div
                         ref={ref}
                         data-about-rings-layer

@@ -79,7 +79,7 @@ export function CharterServicesDesktop() {
 
             setCardPositions(stackMetrics)
 
-            const scrollPct = 260 + Math.max(0, n - 1) * 34
+            const scrollPct = 260 + Math.max(0, n - 1)
 
             const tl = gsap.timeline({
                 scrollTrigger: {
@@ -98,7 +98,7 @@ export function CharterServicesDesktop() {
                 gsap.set(bgFigure, {
                     transformOrigin: '50% 52%',
                     force3D: true,
-                    y: bgTravel * 0.25,
+                    y: bgTravel * 0.1,
                     scale: 1,
                 })
             }
@@ -109,7 +109,11 @@ export function CharterServicesDesktop() {
             for (let i = 1; i < n; i++) {
                 const startT = INITIAL_HOLD + (i - 1) * segment
                 const progress = i / (n - 1)
-                const bgY = gsap.utils.interpolate(bgTravel * 0.52, -bgTravel * 0.24, progress)
+                const bgY = gsap.utils.interpolate(
+                    bgTravel * 0.15,
+                    -bgTravel * 0.05,
+                    progress
+                )
                 const bgScale = gsap.utils.interpolate(1, 1.055, progress)
 
                 tl.to(
@@ -212,10 +216,7 @@ export function CharterServicesDesktop() {
                                 alt=""
                                 fill
                                 priority
-                                className={cn(
-                                    'size-full min-w-full object-contain object-[center_5%]',
-                                    'min-h-svh lg:min-h-[calc(100svh+var(--charter-stack-bg-travel,0))]',
-                                )}
+                                className="absolute inset-0 left-1/2 w-screen h-full max-w-none"
                             />
                             <div
                                 aria-hidden
@@ -316,7 +317,7 @@ export function CharterServicesDesktop() {
                             </div>
                         ) : (
                             /* Animated stack */
-                            <div className="relative mx-auto min-h-[min(76svh,720px)] w-full max-w-[min(720px,calc(100vw-2rem))] overflow-visible lg:-mt-20 lg:min-h-[min(76svh,460px)] xl:-mt-24 xl:min-h-[min(76svh,460px)] xl:max-w-182 2xl:-mt-28">
+                            <div className="relative mx-auto min-h-[min(76svh,720px)] w-full max-w-[min(720px,calc(100vw-2rem))] overflow-visible lg:mt-10 lg:min-h-[min(76svh,460px)] xl:-mt-12.5 xl:min-h-[min(76svh,460px)] xl:max-w-182 2xl:mt-[-320px]">
                                 <div
                                     data-charter-stack-stage
                                     className="invisible relative h-full min-h-[inherit] w-full overflow-visible pt-0 pb-2 opacity-0 data-ready:visible data-ready:opacity-100 lg:translate-y-2 xl:-translate-y-10"

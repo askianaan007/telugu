@@ -68,10 +68,10 @@ export function FooterDesktop() {
                 {/* Sticky viewport layer */}
                 <div className="sticky top-0 z-10 h-dvh w-full overflow-hidden">
                     {/* Watermark */}
-                    <m.div className="absolute inset-x-0 top-0 z-0 flex items-start justify-center pt-[14vh]" style={motionEnabled ? { opacity: wmOpacity, y: wmY } : undefined}>
+                    <m.div className="absolute inset-x-0 top-0 z-0 flex items-start justify-center pt-[6vh]" style={motionEnabled ? { opacity: wmOpacity, y: wmY } : undefined}>
                         <div ref={watermarkRevealRef} className="footer-reveal-watermark-wrap w-full">
                             <m.p
-                                className="footer-reveal-watermark pointer-events-none relative z-0 w-full max-w-full text-center [font-family:var(--font-geist)] font-bold tracking-[-0.04em] leading-[1.05] text-[clamp(3rem,13vw,6rem)] sm:text-[clamp(3.25rem,12vw,7rem)] lg:text-[clamp(6rem,11vw,8rem)]
+                                className="footer-reveal-watermark pb-[0.25em] pointer-events-none relative z-0 w-full max-w-full text-center [font-family:var(--font-geist)] font-bold tracking-[-0.04em] leading-[1.18] text-[clamp(3rem,13vw,6rem)] sm:text-[clamp(3.25rem,12vw,7rem)] lg:text-[clamp(6rem,11vw,8rem)]
 xl:text-[clamp(7rem,10vw,9rem)]
 2xl:text-[10rem] select-none"
                                 style={motionEnabled ? { backgroundPositionX: 'center', backgroundPositionY: wmGradientPos } : undefined}

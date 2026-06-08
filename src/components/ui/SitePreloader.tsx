@@ -14,11 +14,34 @@ export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
     const [progress, setProgress] = useState(0)
     const startTimeRef = useRef(Date.now())
     const reducedMotion = useRef(false)
+    // Guard against StrictMode double-mount re-initialization
+    const hasInitialized = useRef(false)
+    // Stable ref for the onComplete callback
+    const onCompleteRef = useRef(onComplete)
+    onCompleteRef.current = onComplete
+
+    // Debug: mount/unmount tracking
+    useEffect(() => {
+        console.log('[SitePreloader] mounted')
+        return () => {
+            console.log('[SitePreloader] unmounted')
+        }
+    }, [])
 
     useEffect(() => {
-        reducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        if (reducedMotion.current) { setPhase('done'); onComplete?.(); return }
+        // StrictMode double-mount guard: only initialize once per component lifetime
+        if (hasInitialized.current) return
+        hasInitialized.current = true
 
+        reducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        if (reducedMotion.current) {
+            setPhase('done')
+            console.log('[SitePreloader] handleComplete called (reduced motion)')
+            onCompleteRef.current?.()
+            return
+        }
+
+        let cancelled = false
         let p = 0
         const ticker = setInterval(() => {
             p += Math.random() * 14 + 2
@@ -26,27 +49,33 @@ export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
         }, 140)
 
         const finish = async () => {
+            if (cancelled) return
             clearInterval(ticker)
             await document.fonts?.ready?.catch(() => { })
+            if (cancelled) return
             const elapsed = Date.now() - startTimeRef.current
             await new Promise((r) => setTimeout(r, Math.max(0, MIN_DISPLAY_MS - elapsed)))
+            if (cancelled) return
             setProgress(100)
             setPhase('reveal')
             await new Promise((r) => setTimeout(r, 1000))
+            if (cancelled) return
             setPhase('exiting')
             await new Promise((r) => setTimeout(r, EXIT_DURATION_MS))
+            if (cancelled) return
             setPhase('done')
-            onComplete?.()
+            console.log('[SitePreloader] handleComplete called')
+            onCompleteRef.current?.()
         }
 
         if (document.readyState === 'complete') { finish() }
         else {
             window.addEventListener('load', finish, { once: true })
             const fb = setTimeout(finish, 5000)
-            return () => { clearInterval(ticker); window.removeEventListener('load', finish); clearTimeout(fb) }
+            return () => { cancelled = true; clearInterval(ticker); window.removeEventListener('load', finish); clearTimeout(fb) }
         }
-        return () => clearInterval(ticker)
-    }, [onComplete])
+        return () => { cancelled = true; clearInterval(ticker) }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     if (phase === 'done') return null
 

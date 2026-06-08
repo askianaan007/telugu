@@ -3,27 +3,44 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { SitePreloader } from '@/components/ui/SitePreloader'
 
-export function PreloaderProvider({ children }: { children: ReactNode }) {
-    const [ready, setReady] = useState(false)
+let hasPreloaded = false
 
-    // Lock scroll while loading
+if (typeof window !== 'undefined') {
+    console.log('[PreloaderProvider] Module loaded — hasPreloaded:', hasPreloaded)
+}
+
+export function PreloaderProvider({ children }: { children: ReactNode }) {
+    const [ready, setReady] = useState(() => hasPreloaded)
+
     useEffect(() => {
-        if (ready) return
+        console.log('[PreloaderProvider] mounted — hasPreloaded:', hasPreloaded, '— ready:', ready)
+        return () => {
+            console.log('[PreloaderProvider] unmounted')
+        }
+    }, [])
+
+    useEffect(() => {
+        if (ready || hasPreloaded) return
         const original = document.body.style.overflow
         document.body.style.overflow = 'hidden'
         return () => { document.body.style.overflow = original }
     }, [ready])
 
     const handleComplete = useCallback(() => {
+        console.log('[PreloaderProvider] handleComplete called — setting hasPreloaded=true')
+        hasPreloaded = true
         setReady(true)
         // Scroll to top cleanly once unlocked
         window.scrollTo({ top: 0, behavior: 'instant' })
     }, [])
 
+    if (hasPreloaded) {
+        return <>{children}</>
+    }
+
     return (
         <>
             <SitePreloader onComplete={handleComplete} />
-            {/* Page content fades in when ready */}
             <div
                 style={{
                     opacity: ready ? 1 : 0,

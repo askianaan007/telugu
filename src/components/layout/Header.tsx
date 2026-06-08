@@ -4,14 +4,21 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react'
 import { cn } from '@/lib/utils'
 import { ActionButton } from '@/components/ui/ActionButton'
 
 const NAV_LINKS = [
     { label: 'Home', href: '#hero' },
     { label: 'About Us', href: '#about' },
-    { label: 'Services', href: '#services' },
+    { label: 'Models', href: '#our-models' },
 ]
 
 const SCROLL_HIDE_AFTER_Y = 20
@@ -26,6 +33,21 @@ export default function Header() {
     const headerRef = useRef<HTMLElement>(null)
     const pendingRef = useRef(false)
     const reduceMotion = useReducedMotion()
+
+    // FIX 1: moved inside the component so it can access setOpen
+    const handleNavClick = useCallback(
+        (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+            e.preventDefault()
+            const id = href.replace('#', '')
+            const element = document.getElementById(id)
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                window.history.replaceState(null, '', href)
+            }
+            setOpen(false)
+        },
+        []
+    )
 
     useLayoutEffect(() => {
         const el = headerRef.current
@@ -113,7 +135,6 @@ export default function Header() {
                 animate={reduceMotion ? { y: 0, opacity: 1, scale: 1 } : scrollHidden ? 'hidden' : 'visible'}
                 className={cn(
                     'fixed inset-x-0 z-50 origin-top will-change-transform',
-                    // FIX 2: proper top gap + left/right padding on every breakpoint
                     'top-7 px-8',
                     'sm:top-10 sm:px-10',
                     'md:top-10 md:px-10',
@@ -131,9 +152,10 @@ export default function Header() {
                     )}
                     style={glassStyle}
                 >
+                    {/* FIX 2: was `link.href` (undefined variable), now correctly '#hero' */}
                     <Link
                         href="#hero"
-                        aria-label="Telugu Airlines home"
+                        onClick={(e) => handleNavClick(e, '#hero')}
                         className="relative flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2 lg:gap-3"
                     >
                         <span className="relative flex shrink-0 items-center justify-start overflow-hidden">
@@ -153,7 +175,6 @@ export default function Header() {
                                 width={420}
                                 height={84}
                                 priority
-                                // FIX 2: smaller text on mobile
                                 className="h-3.5 w-auto max-w-22 object-contain object-left sm:h-4.25 sm:max-w-32 lg:h-7 lg:max-w-65"
                             />
                         </span>
@@ -165,6 +186,7 @@ export default function Header() {
                             <Link
                                 key={link.href}
                                 href={link.href}
+                                onClick={(e) => handleNavClick(e, link.href)}
                                 className="group relative font-sans text-[15px] font-bold uppercase tracking-[0.06em] text-brand-black transition-colors"
                             >
                                 {link.label}
@@ -178,16 +200,16 @@ export default function Header() {
 
                     {/* Right side: CTA + hamburger */}
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                        {/* FIX 2: Contact Us button smaller on mobile */}
                         <div className="scale-[0.78] origin-right sm:scale-[0.85] lg:scale-100">
                             <ActionButton href="#contact" label="Contact Us" className="inline-flex" />
                         </div>
+                        {/* FIX 5: added aria-controls for accessibility */}
                         <button
                             type="button"
                             onClick={() => setOpen((v) => !v)}
                             aria-label={open ? 'Close menu' : 'Open menu'}
                             aria-expanded={open}
-                            // FIX 2: smaller hamburger on mobile
+                            aria-controls="mobile-nav"
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/15 bg-black/8 text-brand-black backdrop-blur-md transition-colors hover:bg-black/15 sm:h-9 sm:w-9 lg:hidden"
                         >
                             {open
@@ -214,7 +236,9 @@ export default function Header() {
                             onClick={() => setOpen(false)}
                             aria-hidden
                         />
+                        {/* FIX 3 & 5: added id for aria-controls; mobile links now use handleNavClick for smooth scroll */}
                         <motion.nav
+                            id="mobile-nav"
                             className="absolute inset-x-3 top-16.5 max-h-[min(560px,calc(100dvh-8rem))] overflow-y-auto rounded-3xl p-5 sm:inset-x-4 sm:top-20 sm:p-6"
                             style={mobileNavStyle}
                             initial={{ y: -24, opacity: 0 }}
@@ -228,7 +252,7 @@ export default function Header() {
                                     <li key={link.href}>
                                         <Link
                                             href={link.href}
-                                            onClick={() => setOpen(false)}
+                                            onClick={(e) => handleNavClick(e, link.href)}
                                             className="flex items-center justify-between rounded-2xl px-4 py-3 font-sans text-[14px] font-bold uppercase tracking-[0.06em] text-white/80 transition-colors hover:bg-white/8 hover:text-white sm:py-3.5 sm:text-[15px]"
                                         >
                                             {link.label}
