@@ -403,8 +403,7 @@ export function TaglineScrollFull() {
         }
     }, [])
 
-    const syncProgress = useCallback((p: number) => { applyProgress(p) }, [applyProgress])
-    useEffect(() => { syncProgressRef.current = syncProgress }, [syncProgress])
+    useEffect(() => { syncProgressRef.current = applyProgress }, [applyProgress])
 
     useLayoutEffect(() => {
         if (prefersReducedMotion) { revealStickyScene(); return }
@@ -488,17 +487,22 @@ export function TaglineScrollFull() {
         () => {
             const container = containerRef.current
             if (!container) return
+            let resizeTimer: ReturnType<typeof setTimeout>
             const onResize = () => {
                 recomputeLayout()
                 ScrollTrigger.refresh()
                 if (prefersReducedMotion) applyReducedMotionState()
                 else syncProgressRef.current(pendingProgressRef.current)
             }
-            window.addEventListener('resize', onResize)
+            const debouncedResize = () => {
+                clearTimeout(resizeTimer)
+                resizeTimer = setTimeout(onResize, 100)
+            }
+            window.addEventListener('resize', debouncedResize, { passive: true })
             if (prefersReducedMotion) {
                 applyReducedMotionState()
                 revealStickyScene()
-                return () => window.removeEventListener('resize', onResize)
+                return () => { window.removeEventListener('resize', debouncedResize); clearTimeout(resizeTimer) }
             }
             const st = ScrollTrigger.create({
                 id: SCROLL_TRIGGER_ID,
@@ -520,7 +524,7 @@ export function TaglineScrollFull() {
             ScrollTrigger.refresh()
             syncProgressRef.current(st.progress)
             requestAnimationFrame(() => { syncProgressRef.current(st.progress); revealStickyScene() })
-            return () => { window.removeEventListener('resize', onResize); st.kill() }
+            return () => { window.removeEventListener('resize', debouncedResize); clearTimeout(resizeTimer); st.kill() }
         },
         { scope: containerRef, dependencies: [prefersReducedMotion, applyReducedMotionState, revealStickyScene, recomputeLayout] },
     )

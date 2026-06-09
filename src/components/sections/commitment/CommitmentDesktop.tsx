@@ -38,7 +38,6 @@ export function CommitmentDesktop() {
             if (ring && !reduceMotion) {
                 let rotation = 0, velocity = 0, pendingScrollDelta = 0
                 let lastScrollY = window.scrollY, lastFrameTime = performance.now(), isIntersecting = true
-                const setRotation = gsap.quickSetter(ring, 'rotation', 'deg')
 
                 const observer = new IntersectionObserver(([entry]) => {
                     isIntersecting = entry?.isIntersecting ?? false
@@ -61,7 +60,7 @@ export function CommitmentDesktop() {
                     if (Math.abs(velocity) < VELOCITY_EPS && pendingScrollDelta === 0) { velocity = 0; rotationRafId = null; return }
                     rotation += velocity * dt
                     velocity *= Math.pow(FRICTION, dt)
-                    setRotation(rotation)
+                    ring.style.transform = `rotate(${rotation}deg)`
                     rotationRafId = requestAnimationFrame(step)
                 }
 
