@@ -31,7 +31,10 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     const tickerCallbackRef = useRef<((time: number) => void) | null>(null)
 
     useEffect(() => {
-        const lenis = new Lenis({ lerp: 0.08, smoothWheel: true })
+        const lenis = new Lenis({
+            lerp: 0.045,
+            smoothWheel: true,
+        })
         lenisRef.current = lenis
 
         // ← NEW: expose for preScroll.ts

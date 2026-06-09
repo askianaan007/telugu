@@ -4,6 +4,9 @@ import { useRef } from 'react'
 import Header from '@/components/layout/Header'
 import { HeroSection } from '@/components/sections/HeroSection'
 import { AboutIntroSection } from '@/components/sections/AboutSection'
+import { VisionMissionSection } from '@/components/sections/VisionMissionSection'
+import { AboutVisionHandoffBridge } from '@/components/sections/about/AboutVisionHandoffBridge'
+import { AboutVisionHandoffProvider } from '@/components/sections/about/AboutVisionHandoffContext'
 import { CharterServicesSection } from '@/components/sections/ServicesSection'
 import { HeliportSolutionsSection } from '@/components/sections/HeliportSolutionsSection'
 import { GlobalPresenceSection } from '@/components/sections/GlobalPresenceSection'
@@ -24,16 +27,29 @@ export default function HomePage() {
     <>
       <Header />
       <main className="relative">
-        <HeroSection
-          aboutSectionRef={aboutSectionRef}
-          onHelicopterRef={(el) => { helicopterRef.current = el }}
-          onRingsRef={(el) => { ringsRef.current = el }}
-        />
-        <AboutIntroSection
-          fixedHelicopterOpacityRef={helicopterRef}
-          fixedRingsRef={ringsRef}
-          sectionRef={aboutSectionRef}
-        />
+        {/*
+                 * AboutVisionHandoffProvider must wrap:
+                 *   1. AboutIntroSection  — registers handoff card + mosaic anchor
+                 *   2. VisionMissionSection — registers vision panel slot
+                 *   3. AboutVisionHandoffBridge — creates the ScrollTrigger morph
+                 *
+                 * Everything outside this provider is unaffected.
+                 */}
+        <AboutVisionHandoffProvider>
+          <HeroSection
+            aboutSectionRef={aboutSectionRef}
+            onHelicopterRef={(el) => { helicopterRef.current = el }}
+            onRingsRef={(el) => { ringsRef.current = el }}
+          />
+          <AboutIntroSection
+            fixedHelicopterOpacityRef={helicopterRef}
+            fixedRingsRef={ringsRef}
+            sectionRef={aboutSectionRef}
+          />
+          <VisionMissionSection />
+          <AboutVisionHandoffBridge />
+        </AboutVisionHandoffProvider>
+
         <CharterServicesSection />
         <HeliportSolutionsSection />
         <GlobalPresenceSection />

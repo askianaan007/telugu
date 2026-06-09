@@ -2,13 +2,25 @@
 
 // src/components/sections/about/AboutSectionTablet.tsx
 // ─────────────────────────────────────────────────────
-// Tablet (768px – 1023px): GSAP scroll-pin with two mobile image rails
-// flanking a centred text block. Simpler than desktop — 2 cols not 4.
+// Tablet (768px – 1023px): GSAP scroll-pin with two mobile image rails.
+//
+// Changes from current project:
+// • Imports useAboutVisionHandoffOptional + scheduleScrollTriggerRefresh
+// • Passes registerHandoffCard + registerMosaicAnchor to left rail (contains reveal-06)
+// • Adds handoffExit label + HANDOFF_BAND to timeline
+// • Sets overlay overflow:visible during exit band
+// • Registers pin ST + stores handoffApiRef
+// • Cleanup calls restoreHandoffToAbout + setAboutPinHandoffSuppressed(false)
 
 import { useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
-import { type CSSProperties, useCallback, useRef } from 'react'
+import { type CSSProperties, useCallback, useEffect, useRef } from 'react'
 import { Section } from '@/components/layout/Section'
+import {
+    scheduleScrollTriggerRefresh,
+    useAboutVisionHandoffOptional,
+} from './AboutVisionHandoffContext'
+import { ABOUT_HANDOFF_MOSAIC_ANCHOR_ATTR } from '@/lib/animations/aboutVisionHandoff'
 import { gsap, useGSAP } from '@/lib/animations/gsap'
 import { cn } from '@/lib/utils'
 import { AboutRevealColumn } from './AboutRevealCard'
@@ -16,13 +28,14 @@ import {
     ABOUT_PARAGRAPH,
     ABOUT_PIN_SCRUB_SMOOTH,
     ABOUT_REVEAL_ORBIT_VARS,
-    DESKTOP_MOSAIC_COLUMNS,
     MOBILE_LEFT_PARALLAX_Y,
     MOBILE_LEFT_RAIL_SLOTS,
     MOBILE_RIGHT_RAIL_SLOTS,
     MOSAIC_STAGGER_MARGIN_TOP,
     type AboutSectionProps,
 } from './aboutShared'
+
+const HANDOFF_BAND = 0.15
 
 const TABLET_ORBIT_VARS: CSSProperties = {
     ...ABOUT_REVEAL_ORBIT_VARS,
@@ -38,6 +51,14 @@ export function AboutSectionTablet({
 }: AboutSectionProps) {
     const pinRef = useRef<HTMLDivElement>(null)
     const prefersReducedMotion = useReducedMotion()
+    const handoffCtx = useAboutVisionHandoffOptional()
+    const registerHandoffCard = handoffCtx?.registerHandoffCard
+    const registerMosaicAnchor = handoffCtx?.registerMosaicAnchor
+    const handoffApiRef = useRef(handoffCtx)
+
+    useEffect(() => {
+        handoffApiRef.current = handoffCtx
+    }, [handoffCtx])
 
     const clearState = useCallback(
         (root: HTMLElement) => {
@@ -48,10 +69,14 @@ export function AboutSectionTablet({
                 root.querySelector<HTMLElement>('[data-about-center-image]'),
                 fixedHelicopterOpacityRef?.current,
             ]
+            const overlay = root.querySelector<HTMLElement>('[data-about-overlay]')
+            const handoffAnchor = root.querySelector<HTMLElement>(`[${ABOUT_HANDOFF_MOSAIC_ANCHOR_ATTR}]`)
             root.querySelectorAll<HTMLElement>('[data-about-parallax-col-mobile]').forEach((el) =>
                 gsap.set(el, { clearProps: 'transform,opacity,visibility' })
             )
-            els.forEach((el) => el && gsap.set(el, { clearProps: 'opacity,transform,visibility' }))
+            els.forEach((el) => el && gsap.set(el, { clearProps: 'clipPath,opacity,transform,visibility' }))
+            if (overlay) gsap.set(overlay, { clearProps: 'overflow' })
+            if (handoffAnchor) gsap.set(handoffAnchor, { clearProps: 'opacity,visibility,transform,scale,zIndex,y' })
         },
         [fixedHelicopterOpacityRef, fixedRingsRef],
     )
@@ -65,6 +90,8 @@ export function AboutSectionTablet({
             const copyInner = root.querySelector<HTMLElement>('[data-about-copy-inner]')
             const centerImage = root.querySelector<HTMLElement>('[data-about-center-image]')
             const mobileCols = root.querySelectorAll<HTMLElement>('[data-about-parallax-col-mobile]')
+            const overlay = root.querySelector<HTMLElement>('[data-about-overlay]')
+            const handoffAnchor = root.querySelector<HTMLElement>(`[${ABOUT_HANDOFF_MOSAIC_ANCHOR_ATTR}]`)
 
             if (!badge) return
 
@@ -78,6 +105,13 @@ export function AboutSectionTablet({
                     invalidateOnRefresh: true,
                     fastScrollEnd: true,
                     anticipatePin: 1,
+                    onLeave(self) {
+                        if (self.direction === 1) handoffApiRef.current?.captureHandoffStartRect?.()
+                        if (!handoffApiRef.current?.isBridgeHandoffActive?.()) scheduleScrollTriggerRefresh()
+                    },
+                    onEnterBack() {
+                        if (!handoffApiRef.current?.isBridgeHandoffActive?.()) scheduleScrollTriggerRefresh()
+                    },
                     onRefresh(self) {
                         if (self.progress < 0.05) {
                             mobileCols.forEach((col) =>
@@ -91,11 +125,11 @@ export function AboutSectionTablet({
             gsap.set(badge, { autoAlpha: 0, y: 48 })
             if (copyInner) gsap.set(copyInner, { autoAlpha: 0, y: 60 })
             if (centerImage) gsap.set(centerImage, { autoAlpha: 1, scale: 1.7, y: 160, transformOrigin: 'center center' })
-            if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { opacity: 1 })
-            if (fixedRingsRef?.current) gsap.set(fixedRingsRef.current, { opacity: 1 })
+            if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { clipPath: 'inset(0 0 0% 0)' })
+            if (fixedRingsRef?.current) gsap.set(fixedRingsRef.current, { clipPath: 'inset(0 0 0% 0)' })
 
-            if (fixedRingsRef?.current) tl.to(fixedRingsRef.current, { scale: 0, duration: 0.01 }, 0.1)
-            if (fixedHelicopterOpacityRef?.current) tl.to(fixedHelicopterOpacityRef.current, { scale: 0, duration: 0.01 }, 0.1)
+            if (fixedRingsRef?.current) tl.to(fixedRingsRef.current, { clipPath: 'inset(0 0 100% 0)', duration: 0.12, ease: 'power2.in' }, 0)
+            if (fixedHelicopterOpacityRef?.current) tl.to(fixedHelicopterOpacityRef.current, { clipPath: 'inset(0 0 100% 0)', duration: 0.12, ease: 'power2.in' }, 0)
 
             if (centerImage) {
                 tl.fromTo(centerImage, { autoAlpha: 1, scale: 1.7, y: 160 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.12, ease: 'none' }, 0)
@@ -107,12 +141,29 @@ export function AboutSectionTablet({
 
             const startYMobile = window.innerHeight * 0.45
             mobileCols.forEach((col, i) => {
-                const [startY, endY] = i === 0 ? MOBILE_LEFT_PARALLAX_Y : [startYMobile, -180]
+                const [startY, endY] = i === 0 ? MOBILE_LEFT_PARALLAX_Y : ([startYMobile, -180] as const)
                 gsap.set(col, { y: startY, force3D: true })
                 tl.fromTo(col, { y: startY }, { y: endY, ease: 'none', duration: 0.65 }, 0)
             })
 
+            const wordTimelineEnd = 0.65
+            const handoffExitAt = wordTimelineEnd + 0.06
+            tl.addLabel('handoffExit', handoffExitAt)
+            tl.to({}, { duration: HANDOFF_BAND }, 'handoffExit')
+
+            // Allow overflow during handoff so the floating card is visible outside the clip
+            if (overlay) tl.set(overlay, { overflow: 'visible' }, 'handoffExit')
+            if (handoffAnchor) {
+                tl.set(handoffAnchor, { transformOrigin: 'center center', zIndex: 61, force3D: true }, 'handoffExit')
+            }
+
+            const pinSt = tl.scrollTrigger
+            if (pinSt) handoffApiRef.current?.registerAboutPinScrollTrigger(pinSt)
+
             return () => {
+                handoffApiRef.current?.registerAboutPinScrollTrigger(null)
+                handoffApiRef.current?.setAboutPinHandoffSuppressed(false)
+                handoffApiRef.current?.restoreHandoffToAbout?.()
                 tl.scrollTrigger?.kill()
                 tl.kill()
                 clearState(root)
@@ -135,39 +186,40 @@ export function AboutSectionTablet({
             >
                 <div ref={pinRef} className="relative z-55 w-full">
                     <div className="relative min-h-svh w-full">
-                        <div className="pointer-events-none absolute inset-0 z-60 flex min-h-svh items-center justify-center overflow-x-visible overflow-y-clip p-4 sm:p-5">
+                        <div
+                            data-about-overlay
+                            className="pointer-events-none absolute inset-0 z-60 flex min-h-svh items-center justify-center overflow-x-visible overflow-y-clip p-4 sm:p-5"
+                        >
                             <div
                                 style={TABLET_ORBIT_VARS}
                                 className="relative mx-auto flex w-full max-w-[min(900px,calc(100vw-1.5rem))] flex-row items-start justify-center gap-3 overflow-visible min-h-[min(54svh,440px)]"
                             >
-                                {/* Left rail */}
+                                {/* Left rail — contains reveal-06 (handoff card) */}
                                 <div data-about-parallax-col-mobile className="shrink-0 will-change-transform">
                                     <div style={{ marginTop: MOSAIC_STAGGER_MARGIN_TOP.outer }}>
-                                        <AboutRevealColumn images={MOBILE_LEFT_RAIL_SLOTS} keyPrefix="t-left" />
+                                        <AboutRevealColumn
+                                            images={MOBILE_LEFT_RAIL_SLOTS}
+                                            keyPrefix="t-left"
+                                            registerHandoffCard={registerHandoffCard}
+                                            registerMosaicAnchor={registerMosaicAnchor}
+                                        />
                                     </div>
                                 </div>
 
                                 {/* Centre copy */}
                                 <div className="pointer-events-auto relative z-90 flex min-h-0 min-w-0 flex-1 shrink-0 flex-col items-center justify-center self-center gap-4 px-1 sm:px-2">
-                                    {/* Floating center image (GSAP animated) */}
                                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-100">
                                         <div data-about-center-image className="pointer-events-auto relative z-50 will-change-transform">
                                             <div className="relative aspect-square w-(--about-card) shrink-0 overflow-visible rounded-[18px] border-2 border-[#090202]/8 p-1.5 shadow-[0_14px_44px_-18px_rgba(9,9,11,0.22)] backdrop-blur-md">
                                                 <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-transparent from-40% to-[#090202]/8" />
                                                 <div className="relative z-1 size-full overflow-hidden rounded-2xl border-2 border-white bg-white">
-                                                    <Image
-                                                        src="/images/about-us-reveal-03.png"
-                                                        alt="Telugu Airlines helicopter in flight"
-                                                        fill
-                                                        sizes="(max-width: 1023px) 200px"
-                                                        className="object-cover object-center"
-                                                    />
+                                                    <Image src="/images/about-us-reveal-03.png" alt="Telugu Airlines helicopter in flight" fill
+                                                        sizes="(max-width: 1023px) 200px" className="object-cover object-center" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Badge */}
                                     <div data-about-badge className="relative z-50 flex flex-col items-center gap-1.5">
                                         <span className="inline-flex items-center gap-2">
                                             <Image src="/images/black-asterisk.svg" width={13} height={13} alt="" className="h-3 w-3 shrink-0" aria-hidden />
@@ -177,7 +229,6 @@ export function AboutSectionTablet({
                                             className="h-auto w-[min(180px,calc(100vw-2rem))]" aria-hidden />
                                     </div>
 
-                                    {/* Body */}
                                     <div data-about-copy-inner className="w-full">
                                         <p className={cn(
                                             'mx-auto block w-full text-center [font-family:var(--font-halant)] font-normal',

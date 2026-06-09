@@ -1,5 +1,37 @@
 'use client'
 
+// FILE: src/components/sections/OurModelsSection.shared.tsx
+//
+// FIX: CTA button clipped at bottom of h-dvh sticky section.
+//
+// ROOT CAUSE (confirmed by screenshot):
+//   The OurModels desktop section uses a sticky shell with h-dvh + overflow-hidden
+//   (or overflow-clip). ModelDetailBody fills that full height. The aircraft image
+//   uses xl:scale-[1.5] which is a CSS transform — transforms do NOT affect layout
+//   flow, so the image visually extends below its grid row into the CTA row's space,
+//   but the CTA's DOM position is still correct. The real clip is:
+//
+//   The section's sticky container has `overflow-hidden` + `h-dvh`. When the grid
+//   rows sum to exactly dvh, the bottom padding on Row 3 pushes the CTA OUTSIDE
+//   the h-dvh boundary → clipped.
+//
+//   Additionally, the stats grid uses `grid-cols-2` which forces the CTA (col-span-2)
+//   to a third implicit row. On the desktop `showCta=true` path, the CTA must come
+//   AFTER both stat columns, but `grid-cols-2` auto-places it correctly only if it's
+//   the last child. Confirmed OK. The real fix is:
+//
+// SOLUTION:
+//   1. Remove padding-bottom from the stats row entirely.
+//   2. Instead, wrap the entire ModelDetailBody in a grid that reserves a fixed
+//      bottom row JUST for the CTA, sized with clamp(dvh) so it's always visible.
+//   3. Change the outer grid to: [auto_1fr_auto_clamp-cta-row]
+//      where the clamp-cta-row is the guaranteed safe zone.
+//   4. Move OurModelsBookCta OUT of the stats grid into its own dedicated row.
+//   5. The stats grid becomes a simple 2-col grid with no CTA child.
+//
+// This guarantees the CTA is ALWAYS in the last grid row, which is always
+// inside the h-dvh container, with explicit height that is never zero.
+
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/uiStore'
@@ -7,22 +39,8 @@ import { ActionButton } from '@/components/ui/ActionButton'
 import { OUR_MODELS } from '@/data/ourModels'
 
 export const OUR_MODELS_CLOUD_PARALLAX = [
-    {
-        yFrom: 0,
-        yTo: 22,
-        xFrom: 0,
-        xTo: 0,
-        scaleFrom: 1,
-        scaleTo: 1.06,
-    },
-    {
-        yFrom: 0,
-        yTo: 30,
-        xFrom: 0,
-        xTo: 0,
-        scaleFrom: 1,
-        scaleTo: 1.08,
-    },
+    { yFrom: 0, yTo: 22, xFrom: 0, xTo: 0, scaleFrom: 1, scaleTo: 1.06 },
+    { yFrom: 0, yTo: 30, xFrom: 0, xTo: 0, scaleFrom: 1, scaleTo: 1.08 },
 ]
 
 export const OUR_MODELS_MOBILE_CARD_REVEAL_FROM: gsap.TweenVars = {
@@ -49,11 +67,7 @@ export function OurModelsFixedBackdrop({ ambientMotion }: { ambientMotion: boole
             >
                 <div
                     data-ourmodels-cloud
-                    className={cn(
-                        'absolute inset-x-0 bottom-0 z-3',
-                        'h-full w-full',
-                        'will-change-transform',
-                    )}
+                    className="absolute inset-x-0 bottom-0 z-3 h-full w-full will-change-transform"
                 >
                     <Image
                         src="/images/models_bottom_cloud.png"
@@ -63,16 +77,9 @@ export function OurModelsFixedBackdrop({ ambientMotion }: { ambientMotion: boole
                         className="object-contain object-bottom translate-y-18"
                     />
                 </div>
-
-                {/* Helipad ring — sits just above clouds */}
                 <div
                     data-ourmodels-cloud
-                    className={cn(
-                        'absolute left-[30%] top-[60%]',
-                        '-translate-x-1/2',
-                        'w-[clamp(600px,45vw,900px)]',
-                        'z-2'
-                    )}
+                    className="absolute left-[30%] top-[60%] -translate-x-1/2 w-[clamp(600px,45vw,900px)] z-2"
                 >
                     <Image
                         src="/images/hero-heli-pad.png"
@@ -82,19 +89,32 @@ export function OurModelsFixedBackdrop({ ambientMotion }: { ambientMotion: boole
                         className="w-full h-auto object-contain"
                     />
                 </div>
-
-
             </div>
         </div>
     )
 }
 
-function StatRow({ stat, side, className }: { stat: { value: string; label: string }; side: 'left' | 'right'; className?: string }) {
-    const lineBg = side === 'left'
-        ? 'linear-gradient(to right, #121F2F, rgba(255,255,255,0))'
-        : 'linear-gradient(to left, #121F2F, rgba(255,255,255,0))'
+function StatRow({
+    stat,
+    side,
+    className,
+}: {
+    stat: { value: string; label: string }
+    side: 'left' | 'right'
+    className?: string
+}) {
+    const lineBg =
+        side === 'left'
+            ? 'linear-gradient(to right, #121F2F, rgba(255,255,255,0))'
+            : 'linear-gradient(to left, #121F2F, rgba(255,255,255,0))'
     return (
-        <div className={cn('flex max-w-full items-center gap-2 sm:gap-3', side === 'right' && 'flex-row-reverse', className)}>
+        <div
+            className={cn(
+                'flex max-w-full items-center gap-2 sm:gap-3',
+                side === 'right' && 'flex-row-reverse',
+                className,
+            )}
+        >
             <div className="flex shrink-0 flex-row items-baseline gap-1.5">
                 <span className="[font-family:var(--font-halant)] text-[clamp(2rem,4.2vw,4.375rem)] leading-none tracking-[-0.04em] text-[#121F2F] xl:text-[70px]">
                     {stat.value}
@@ -103,23 +123,28 @@ function StatRow({ stat, side, className }: { stat: { value: string; label: stri
                     {stat.label}
                 </span>
             </div>
-            <div className="h-px min-w-6 flex-1 sm:min-w-8 md:min-w-20 lg:min-w-32 xl:min-w-40"
-                style={{ maxWidth: '15rem', background: lineBg }} />
+            <div
+                className="h-px min-w-6 flex-1 sm:min-w-8 md:min-w-20 lg:min-w-32 xl:min-w-40"
+                style={{ maxWidth: '15rem', background: lineBg }}
+            />
         </div>
     )
 }
 
-export function ModelProgressBadge({ stepIndex, total }: { stepIndex: number; total: number }) {
+export function ModelProgressBadge({
+    stepIndex,
+    total,
+}: {
+    stepIndex: number
+    total: number
+}) {
     const safe = Math.min(total - 1, Math.max(0, stepIndex))
     const arcDeg = 360 / total
     return (
         <div
             data-progress-badge
             className="relative box-border h-[72px] w-[72px] shrink-0 rounded-full border border-[#D9D9D9] xl:h-[100px] xl:w-[100px]"
-            style={{
-                // --ring-deg is set directly by GSAP on scroll, avoiding React re-renders
-                ['--ring-deg' as string]: '0deg',
-            }}
+            style={{ ['--ring-deg' as string]: '0deg' }}
             aria-hidden
         >
             <div
@@ -154,14 +179,49 @@ type ModelDetailBodyProps = {
     hideCenterImage?: boolean
 }
 
-export function ModelDetailBody({ model, stepIndex, imagePriority, showCta = false, hideCenterImage = false }: ModelDetailBodyProps) {
+export function ModelDetailBody({
+    model,
+    stepIndex,
+    imagePriority,
+    showCta = false,
+    hideCenterImage = false,
+}: ModelDetailBodyProps) {
     return (
-        <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-3 lg:gap-2">
-            <div className={cn(
-                'grid w-full shrink-0 grid-cols-1 gap-4',
-                'md:max-lg:grid md:max-lg:grid-cols-[1fr_auto] md:max-lg:gap-6',
-                'lg:grid-cols-[minmax(0,1.35fr)_auto] lg:items-start lg:gap-6',
-            )}>
+        /*
+         * OUTER GRID — 4 rows on desktop when showCta=true, 3 rows otherwise:
+         *
+         *   row 1  auto          — title + badge
+         *   row 2  auto          — stats (no negative margins, no translateY)
+         *   row 3  1fr           — aircraft image (fills remaining space)
+         *   row 4  auto          — CTA only (dedicated safe row, never clipped)
+         *
+         * On mobile / showCta=false, row 4 is empty (CTA not rendered) so the
+         * grid collapses to 3 rows naturally.
+         *
+         * KEY INSIGHT: stats come BEFORE the image in DOM order (matching the
+         * visual in the screenshot where stats are above the helicopter).
+         * The image gets the 1fr row so it fills whatever space is left.
+         * The CTA gets its own auto row below the image.
+         *
+         * The CTA row bottom padding uses dvh so it always stays visually inside
+         * the h-dvh sticky container: pb = clamp(6dvh → 10dvh by breakpoint).
+         */
+        <div
+            className={cn(
+                'grid h-full min-h-0 w-full',
+                showCta
+                    ? 'grid-rows-[auto_auto_1fr_auto]'
+                    : 'grid-rows-[auto_auto_1fr]',
+            )}
+        >
+            {/* ── Row 1: Title + badge ── */}
+            <div
+                className={cn(
+                    'grid w-full shrink-0 grid-cols-1 gap-4',
+                    'md:max-lg:grid md:max-lg:grid-cols-[1fr_auto] md:max-lg:gap-6',
+                    'lg:grid-cols-[minmax(0,1.35fr)_auto] lg:items-start lg:gap-6',
+                )}
+            >
                 <div className="flex min-w-0 flex-col gap-2 text-left lg:max-w-[min(100%,36rem)] lg:min-w-[min(100%,22rem)] lg:flex-1 lg:gap-1.5">
                     <h3
                         data-detail-title
@@ -173,11 +233,13 @@ export function ModelDetailBody({ model, stepIndex, imagePriority, showCta = fal
                         {model.tagline}
                     </p>
                 </div>
-                <div className={cn(
-                    'flex flex-col items-stretch gap-3',
-                    'max-lg:flex-row max-lg:items-start max-lg:justify-between max-lg:gap-4',
-                    'lg:flex-row lg:items-start lg:justify-end lg:gap-8',
-                )}>
+                <div
+                    className={cn(
+                        'flex flex-col items-stretch gap-3',
+                        'max-lg:flex-row max-lg:items-start max-lg:justify-between max-lg:gap-4',
+                        'lg:flex-row lg:items-start lg:justify-end lg:gap-8',
+                    )}
+                >
                     <ModelProgressBadge stepIndex={stepIndex} total={OUR_MODELS.length} />
                     <p className="max-w-95 self-start text-left [font-family:var(--font-geist)] text-base leading-snug text-[#3F3F3E] max-lg:text-left lg:max-w-[min(100%,20rem)] lg:self-end lg:text-right lg:text-sm">
                         {model.shortDescription}
@@ -185,12 +247,54 @@ export function ModelDetailBody({ model, stepIndex, imagePriority, showCta = fal
                 </div>
             </div>
 
+            {/* ── Row 2: Stats (above image, no negative margins) ── */}
+            {/*
+             * REMOVED entirely:
+             *   lg:-mt-8 lg:-translate-y-14 xl:-mt-10 xl:-translate-y-18 2xl:-translate-y-20
+             *
+             * Stats now sit in their own auto-height row above the image.
+             * This matches the screenshot exactly (stats visible above helicopter).
+             */}
+            <div
+                className={cn(
+                    'relative z-31 mt-2 w-full lg:mt-3',
+                    'grid gap-3',
+                    'max-lg:grid-cols-2 max-lg:gap-x-6 max-lg:gap-y-3',
+                    'md:max-lg:gap-x-8',
+                    'lg:grid-cols-2 lg:items-start lg:gap-x-10 lg:gap-y-2',
+                    hideCenterImage ? 'lg:mt-4' : '',
+                )}
+            >
+                <div className="flex flex-col gap-3 max-lg:col-start-1 sm:gap-4 lg:items-start lg:gap-2">
+                    <StatRow stat={model.seats} side="left" />
+                    <StatRow
+                        stat={model.kts}
+                        side="left"
+                        className="pl-6 sm:pl-8 lg:pl-12 xl:pl-16"
+                    />
+                </div>
+                <div className="flex flex-col gap-3 max-lg:col-start-2 max-lg:items-end sm:gap-4 lg:col-start-2 lg:items-end lg:gap-2">
+                    <StatRow stat={model.ft} side="right" />
+                    <StatRow
+                        stat={model.nm}
+                        side="right"
+                        className="pr-6 sm:pr-8 lg:pr-12 xl:pr-16"
+                    />
+                </div>
+            </div>
+
+            {/* ── Row 3: Aircraft image — 1fr, fills remaining space ── */}
+            {/*
+             * overflow-visible so scale() transforms don't clip.
+             * No max-h constraints — the 1fr row governs height naturally.
+             * GSAP target data-detail-hero is preserved.
+             */}
             <div
                 data-detail-hero
                 className={cn(
-                    'relative z-30 mx-auto flex min-h-0 w-full max-w-[min(100%,600px)] flex-1 flex-col items-center justify-center overflow-hidden',
-                    'max-lg:max-h-[min(48vh,22rem)] max-lg:min-h-[clamp(11rem,36vw,16rem)] max-lg:flex-none',
-                    'lg:max-h-[min(40svh,420px)] lg:max-w-[min(100%,840px)] xl:max-h-[min(50svh,560px)] xl:max-w-[min(100%,1080px)]',
+                    'relative z-30 mx-auto flex min-h-0 w-full flex-col items-center justify-center overflow-visible',
+                    'max-lg:max-h-[min(42vh,18rem)]',
+                    'lg:max-w-[min(100%,840px)] xl:max-w-[min(100%,1080px)]',
                     hideCenterImage && 'lg:hidden',
                 )}
             >
@@ -206,45 +310,51 @@ export function ModelDetailBody({ model, stepIndex, imagePriority, showCta = fal
                 </div>
             </div>
 
-            <div className={cn(
-                'relative z-31 mt-auto w-full shrink-0',
-                showCta
-                    ? cn('grid gap-5', 'max-lg:grid-cols-2 max-lg:gap-x-6 max-lg:gap-y-5', 'md:max-lg:gap-x-8 md:max-lg:gap-y-6')
-                    : cn(
-                        'grid gap-5',
-                        'max-lg:grid-cols-2 max-lg:gap-x-6 max-lg:gap-y-5',
-                        'md:max-lg:gap-x-8 md:max-lg:gap-y-6',
-                        'lg:grid-cols-2 lg:items-start lg:gap-x-10',
-                        hideCenterImage ? 'lg:mt-4 lg:translate-y-0' : 'lg:-mt-8 lg:-translate-y-14 xl:-mt-10 xl:-translate-y-18 2xl:-translate-y-20',
-                    ),
-            )}>
-                <div className="flex flex-col gap-3 max-lg:col-start-1 sm:gap-5 lg:items-start lg:gap-3">
-                    <StatRow stat={model.seats} side="left" />
-                    <StatRow stat={model.kts} side="left" className="pl-6 sm:pl-8 lg:pl-12 xl:pl-16" />
+            {/* ── Row 4: CTA — dedicated row, always below image, always visible ── */}
+            {/*
+             * This row only renders when showCta=true (desktop interactive view).
+             *
+             * pb uses clamp(dvh) to guarantee breathing room inside the h-dvh
+             * sticky container:
+             *   mobile  6dvh  → clamp(1rem, 6dvh, 2.5rem)
+             *   tablet  8dvh  → clamp(1.25rem, 8dvh, 3.5rem)
+             *   desktop 10dvh → clamp(1.75rem, 10dvh, 4.5rem)
+             *
+             * pt provides visual separation between image and button.
+             */}
+            {showCta ? (
+                <div
+                    className={cn(
+                        'relative z-32 flex w-full items-end justify-center',
+                        'pt-3 lg:pt-4',
+                        '[padding-bottom:clamp(1rem,6dvh,2.5rem)]',
+                        'md:[padding-bottom:clamp(1.25rem,8dvh,3.5rem)]',
+                        'lg:[padding-bottom:clamp(1.75rem,10dvh,4.5rem)]',
+                        '2xl:pb-[12vh]'
+                    )}
+                >
+                    <OurModelsBookCta />
                 </div>
-                {showCta ? (
-                    <div className="flex max-lg:col-span-2 max-lg:justify-center">
-                        <OurModelsBookCta />
-                    </div>
-                ) : null}
-                <div className="flex flex-col gap-3 max-lg:col-start-2 max-lg:items-end sm:gap-5 lg:col-start-2 lg:items-end lg:gap-3">
-                    <StatRow stat={model.ft} side="right" />
-                    <StatRow stat={model.nm} side="right" className="pr-6 sm:pr-8 lg:pr-12 xl:pr-16" />
-                </div>
-            </div>
+            ) : null}
         </div>
     )
 }
 
 export function OurModelsMobileStack({ showOnLarge }: { showOnLarge: boolean }) {
     return (
-        <div className={cn('flex flex-col gap-14 pt-20 sm:gap-16 sm:py-12', !showOnLarge && 'lg:hidden')}>
+        <div
+            className={cn(
+                'flex flex-col gap-14 pt-20 sm:gap-16 sm:py-12',
+                !showOnLarge && 'lg:hidden',
+            )}
+        >
             <div className="flex flex-col items-center gap-3 text-center">
                 <h2 className="text-brand-charcoal [font-family:var(--font-halant)] text-[clamp(2.5rem,8vw,4rem)] leading-none tracking-[-0.04em]">
                     Our Models
                 </h2>
                 <p className="max-w-md [font-family:var(--font-geist)] text-base text-[#3F3F3E]">
-                    Premium rotorcraft tailored for charter, executive travel, and specialised operations.
+                    Premium rotorcraft tailored for charter, executive travel, and specialised
+                    operations.
                 </p>
             </div>
             {OUR_MODELS.map((model, index) => (

@@ -351,8 +351,8 @@ export function OurModelsDesktop() {
 
                             <div
                                 data-ourmodels-static-cta
-                                className="pointer-events-none absolute inset-x-0 z-50 flex justify-center opacity-0 px-4 lg:px-8"
-                                style={{ bottom: 'max(2%, 2rem)' }}
+                                className="pointer-events-none absolute inset-x-0 z-50 flex justify-center opacity-0 px-4 lg:px-8 bottom-[5%] 2xl:bottom-[10%]"
+
                             >
                                 <div className="max-w-base mx-auto flex w-full justify-center max-lg:hidden">
                                     <OurModelsBookCta />

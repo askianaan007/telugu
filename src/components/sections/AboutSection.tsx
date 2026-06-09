@@ -2,10 +2,10 @@
 
 // src/components/sections/AboutSection.tsx
 // ─────────────────────────────────────────
-// Tier router — same pattern as HeroSection.
-// mobile  (< 768px)  → AboutSectionMobile   — static layout, simple fade-in, no GSAP pin
-// tablet  (768–1023) → AboutSectionTablet   — 2-rail GSAP pin, simpler parallax
-// desktop (1024px+)  → AboutSectionDesktop  — full 4-col GSAP parallax mosaic
+// Tier router — unchanged from current project.
+// All handoff props flow through AboutSectionProps which already includes
+// fixedHelicopterOpacityRef and fixedRingsRef. The handoff context is consumed
+// directly inside each tier component via useAboutVisionHandoffOptional().
 
 import { useSyncExternalStore } from 'react'
 import { AboutSectionDesktop } from './about/AboutSectionDesktop'
@@ -47,5 +47,5 @@ export function AboutIntroSection(props: AboutSectionProps) {
 
     if (tier === 'desktop') return <AboutSectionDesktop {...props} />
     if (tier === 'tablet') return <AboutSectionTablet  {...props} />
-    return <AboutSectionMobile  {...props} />
+    return <AboutSectionMobile {...props} />
 }

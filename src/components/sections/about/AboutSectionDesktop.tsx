@@ -3,13 +3,28 @@
 // src/components/sections/about/AboutSectionDesktop.tsx
 // ─────────────────────────────────────────────────────
 // Desktop (1024px+): full 4-column GSAP scroll-pin with parallax columns.
-// Layout is IDENTICAL to the original AboutSection — centre copy sits in the
-// flex row between col1 and col2, not as an absolute overlay.
+//
+// Changes from current project:
+// • Imports useAboutVisionHandoffOptional + scheduleScrollTriggerRefresh
+// • Passes registerHandoffCard + registerMosaicAnchor into AboutRevealColumn (col1 only)
+// • Adds HANDOFF_BAND, handoffExit label, hero bottom fade, onLeave/onEnterBack callbacks
+// • Adds handoff peer opacity fade during exit band
+// • Stores pin ST reference in handoff context via registerAboutPinScrollTrigger
+// • Cleanup calls restoreHandoffToAbout + setAboutPinHandoffSuppressed(false)
 
 import { useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Section } from '@/components/layout/Section'
+import {
+    scheduleScrollTriggerRefresh,
+    useAboutVisionHandoffOptional,
+} from './AboutVisionHandoffContext'
+import {
+    ABOUT_HANDOFF_CARD_ATTR,
+    ABOUT_HANDOFF_MOSAIC_ANCHOR_ATTR,
+    ABOUT_HANDOFF_PEER_ATTR,
+} from '@/lib/animations/aboutVisionHandoff'
 import { gsap, useGSAP } from '@/lib/animations/gsap'
 import { cn } from '@/lib/utils'
 import { AboutRevealColumn } from './AboutRevealCard'
@@ -24,6 +39,17 @@ import {
     type AboutSectionProps,
 } from './aboutShared'
 
+// Duration of the handoff exit band as a fraction of the total timeline (0–1).
+// Must match the old project exactly.
+const HANDOFF_BAND = 0.15
+const HANDOFF_HERO_SHRINK_DURATION = HANDOFF_BAND * 0.78
+
+function aboutHeroFadeAlpha(scrollProgress: number, exitProgress: number): number {
+    const fadeStart = exitProgress * 0.72
+    const fadeEnd = exitProgress * 0.92
+    return gsap.utils.clamp(0, 1, gsap.utils.mapRange(fadeStart, fadeEnd, 1, 0, scrollProgress))
+}
+
 export function AboutSectionDesktop({
     fixedHelicopterOpacityRef,
     fixedRingsRef,
@@ -31,6 +57,14 @@ export function AboutSectionDesktop({
 }: AboutSectionProps) {
     const pinRef = useRef<HTMLDivElement>(null)
     const prefersReducedMotion = useReducedMotion()
+    const handoffCtx = useAboutVisionHandoffOptional()
+    const registerHandoffCard = handoffCtx?.registerHandoffCard
+    const registerMosaicAnchor = handoffCtx?.registerMosaicAnchor
+    const handoffApiRef = useRef(handoffCtx)
+
+    useEffect(() => {
+        handoffApiRef.current = handoffCtx
+    }, [handoffCtx])
 
     const clearState = useCallback(
         (root: HTMLElement) => {
@@ -39,13 +73,23 @@ export function AboutSectionDesktop({
             const copyInner = root.querySelector<HTMLElement>('[data-about-copy-inner]')
             const centerImage = root.querySelector<HTMLElement>('[data-about-center-image]')
             const desktopCols = root.querySelectorAll<HTMLElement>('[data-about-parallax-col-desktop]')
+            const handoffCard = root.querySelector<HTMLElement>(`[${ABOUT_HANDOFF_CARD_ATTR}]`)
+            const handoffAnchor = root.querySelector<HTMLElement>(`[${ABOUT_HANDOFF_MOSAIC_ANCHOR_ATTR}]`)
+            const handoffPeers = root.querySelectorAll<HTMLElement>(`[${ABOUT_HANDOFF_PEER_ATTR}]`)
+            const overlay = root.querySelector<HTMLElement>('[data-about-overlay]')
 
-            if (ringsLayer) gsap.set(ringsLayer, { clearProps: 'opacity,transform' })
+            if (ringsLayer) gsap.set(ringsLayer, { clearProps: 'clipPath,opacity,transform' })
             if (badge) gsap.set(badge, { clearProps: 'opacity,transform,visibility' })
             if (copyInner) gsap.set(copyInner, { clearProps: 'opacity,transform,visibility' })
             if (centerImage) gsap.set(centerImage, { clearProps: 'opacity,transform,visibility,xPercent,yPercent,y,zIndex' })
-            if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { clearProps: 'opacity' })
+            if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { clearProps: 'clipPath,opacity' })
             desktopCols.forEach((el) => gsap.set(el, { clearProps: 'transform,opacity,visibility' }))
+            handoffPeers.forEach((el) => gsap.set(el, { clearProps: 'opacity,transform,visibility' }))
+            if (handoffAnchor) gsap.set(handoffAnchor, { clearProps: 'opacity,visibility,transform,scale,zIndex,y' })
+            if (handoffCard && handoffCard.style.position !== 'fixed') {
+                gsap.set(handoffCard, { clearProps: 'opacity,visibility,transform,scale,zIndex,y' })
+            }
+            if (overlay) gsap.set(overlay, { clearProps: 'overflow' })
         },
         [fixedHelicopterOpacityRef, fixedRingsRef],
     )
@@ -60,10 +104,13 @@ export function AboutSectionDesktop({
             const copyInner = root.querySelector<HTMLElement>('[data-about-copy-inner]')
             const centerImage = root.querySelector<HTMLElement>('[data-about-center-image]')
             const desktopCols = root.querySelectorAll<HTMLElement>('[data-about-parallax-col-desktop]')
+            const overlay = root.querySelector<HTMLElement>('[data-about-overlay]')
+            const handoffAnchor = root.querySelector<HTMLElement>(`[${ABOUT_HANDOFF_MOSAIC_ANCHOR_ATTR}]`)
+            const heroBottomFade = document.querySelector<HTMLElement>('[data-hero-bottom-fade]')
 
             if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                if (ringsLayer) gsap.set(ringsLayer, { opacity: 0 })
-                if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { opacity: 1, clearProps: 'opacity' })
+                if (ringsLayer) gsap.set(ringsLayer, { clipPath: 'inset(0 0 100% 0)' })
+                if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { clipPath: 'inset(0 0 100% 0)' })
                 if (badge) gsap.set(badge, { opacity: 1, y: 0, clearProps: 'opacity,transform' })
                 if (copyInner) gsap.set(copyInner, { clearProps: 'transform,opacity' })
                 if (centerImage) gsap.set(centerImage, { opacity: 0, clearProps: 'opacity' })
@@ -72,6 +119,15 @@ export function AboutSectionDesktop({
             }
 
             if (!badge) return
+
+            let lastFadeAlpha = -1
+
+            const readPinTimelineMeta = (pinTimeline: gsap.core.Timeline) => {
+                const total = Math.max(pinTimeline.totalDuration(), 0.001)
+                return {
+                    exitProgress: (pinTimeline.labels.handoffExit ?? 1) / total,
+                }
+            }
 
             const tl = gsap.timeline({
                 scrollTrigger: {
@@ -83,17 +139,44 @@ export function AboutSectionDesktop({
                     invalidateOnRefresh: true,
                     fastScrollEnd: true,
                     anticipatePin: 1,
+                    onUpdate(self) {
+                        const pinTimeline = self.animation as gsap.core.Timeline | undefined
+                        if (!pinTimeline || !heroBottomFade) return
+                        const { exitProgress } = readPinTimelineMeta(pinTimeline)
+                        const alpha = aboutHeroFadeAlpha(self.progress, exitProgress)
+                        if (Math.abs(alpha - lastFadeAlpha) > 0.004) {
+                            lastFadeAlpha = alpha
+                            gsap.set(heroBottomFade, { autoAlpha: alpha })
+                        }
+                    },
+                    onLeave(self) {
+                        if (self.direction === 1) {
+                            if (heroBottomFade) gsap.set(heroBottomFade, { autoAlpha: 0 })
+                            handoffApiRef.current?.captureHandoffStartRect?.()
+                        } else if (heroBottomFade) {
+                            gsap.set(heroBottomFade, { autoAlpha: 1 })
+                        }
+                        if (!handoffApiRef.current?.isBridgeHandoffActive?.()) scheduleScrollTriggerRefresh()
+                    },
+                    onEnterBack(self) {
+                        const pinTimeline = self.animation as gsap.core.Timeline | undefined
+                        if (heroBottomFade && pinTimeline) {
+                            const { exitProgress } = readPinTimelineMeta(pinTimeline)
+                            gsap.set(heroBottomFade, { autoAlpha: aboutHeroFadeAlpha(self.progress, exitProgress) })
+                        }
+                        if (!handoffApiRef.current?.isBridgeHandoffActive?.()) scheduleScrollTriggerRefresh()
+                    },
                 },
             })
 
-            if (ringsLayer) gsap.set(ringsLayer, { opacity: 1, scale: 1.0 })
+            if (ringsLayer) gsap.set(ringsLayer, { clipPath: 'inset(0 0 0% 0)' })
+            if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { clipPath: 'inset(0 0 0% 0)' })
             gsap.set(badge, { autoAlpha: 0, y: 55 })
             if (copyInner) gsap.set(copyInner, { autoAlpha: 0, y: 75 })
-            if (fixedHelicopterOpacityRef?.current) gsap.set(fixedHelicopterOpacityRef.current, { opacity: 1, scale: 1 })
             if (centerImage) gsap.set(centerImage, { autoAlpha: 1, scale: 1.8, y: 180, transformOrigin: 'center center' })
 
-            if (ringsLayer) tl.to(ringsLayer, { scale: 0.0, duration: 0.01, ease: 'power3.out' }, 0.12)
-            if (fixedHelicopterOpacityRef?.current) tl.to(fixedHelicopterOpacityRef.current, { scale: 0.0, duration: 0.01, ease: 'power3.out' }, 0.12)
+            if (ringsLayer) tl.to(ringsLayer, { clipPath: 'inset(0 0 100% 0)', duration: 0.12, ease: 'power2.in' }, 0)
+            if (fixedHelicopterOpacityRef?.current) tl.to(fixedHelicopterOpacityRef.current, { clipPath: 'inset(0 0 100% 0)', duration: 0.12, ease: 'power2.in' }, 0)
 
             if (centerImage) {
                 tl.fromTo(centerImage, { autoAlpha: 1, scale: 1.8, y: 180 }, { autoAlpha: 1, scale: 1.0, y: 0, duration: 0.12, ease: 'none', immediateRender: false }, 0)
@@ -104,7 +187,19 @@ export function AboutSectionDesktop({
             if (copyInner) tl.fromTo(copyInner, { autoAlpha: 0, y: 75 }, { autoAlpha: 1, y: 0, duration: 0.18, ease: 'power2.out', immediateRender: false }, 0.12)
 
             const wordTimelineEnd = 0.65
+            const handoffExitAt = wordTimelineEnd + 0.06
+            tl.addLabel('handoffExit', handoffExitAt)
+            tl.to({}, { duration: HANDOFF_BAND }, 'handoffExit')
+
             const mm = gsap.matchMedia()
+
+            mm.add('(min-width: 768px)', () => {
+                if (overlay) tl.set(overlay, { overflow: 'visible' }, 'handoffExit')
+                if (handoffAnchor) {
+                    tl.set(handoffAnchor, { transformOrigin: 'center center', zIndex: 61, force3D: true }, 'handoffExit')
+                }
+                return () => { }
+            })
 
             mm.add('(min-width: 1024px)', () => {
                 const tweens: gsap.core.Animation[] = []
@@ -117,7 +212,13 @@ export function AboutSectionDesktop({
                 return () => tweens.forEach((t) => t.kill())
             })
 
+            const pinSt = tl.scrollTrigger
+            if (pinSt) handoffApiRef.current?.registerAboutPinScrollTrigger(pinSt)
+
             return () => {
+                handoffApiRef.current?.registerAboutPinScrollTrigger(null)
+                handoffApiRef.current?.setAboutPinHandoffSuppressed(false)
+                handoffApiRef.current?.restoreHandoffToAbout?.()
                 mm.revert()
                 tl.scrollTrigger?.kill()
                 tl.kill()
@@ -154,26 +255,31 @@ export function AboutSectionDesktop({
                                     'min-h-[min(58svh,520px)] xl:min-h-[min(62svh,600px)]',
                                 )}
                             >
-                                {/* Left pair: col0 + col1 hugging each other */}
+                                {/* Left pair: col0 + col1 */}
                                 <div className="flex shrink-0 flex-row items-center gap-2 xl:gap-3">
                                     <div data-about-parallax-col-desktop className="shrink-0 will-change-transform">
                                         <div style={{ marginTop: MOSAIC_STAGGER_MARGIN_TOP[DESKTOP_MOSAIC_COLUMNS[0].stagger] }}>
                                             <AboutRevealColumn images={DESKTOP_MOSAIC_SLOTS[0]} keyPrefix="col0" />
                                         </div>
                                     </div>
+                                    {/* col1 contains reveal-06 — the handoff card */}
                                     <div data-about-parallax-col-desktop className="shrink-0 will-change-transform">
                                         <div style={{ marginTop: MOSAIC_STAGGER_MARGIN_TOP[DESKTOP_MOSAIC_COLUMNS[1].stagger] }}>
-                                            <AboutRevealColumn images={DESKTOP_MOSAIC_SLOTS[1]} keyPrefix="col1" />
+                                            <AboutRevealColumn
+                                                images={DESKTOP_MOSAIC_SLOTS[1]}
+                                                keyPrefix="col1"
+                                                registerHandoffCard={registerHandoffCard}
+                                                registerMosaicAnchor={registerMosaicAnchor}
+                                            />
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* ── Centre copy block — absolutely centred over the orbit ── */}
+                                {/* Centre copy */}
                                 <div
                                     data-about-copy
                                     className="pointer-events-auto absolute inset-0 z-90 flex min-h-0 w-full flex-col items-center justify-center self-center px-4 gap-4 sm:gap-5"
                                 >
-                                    {/* Floating center image (GSAP animated) */}
                                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-100">
                                         <div data-about-center-image className="pointer-events-auto relative z-50 will-change-transform">
                                             <div className={cn(
@@ -184,19 +290,13 @@ export function AboutSectionDesktop({
                                             )}>
                                                 <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-transparent from-40% via-transparent via-55% to-[#090202]/8 sm:rounded-[22px]" />
                                                 <div className="relative z-1 size-full overflow-hidden rounded-2xl border-2 border-white bg-white sm:rounded-[22px]">
-                                                    <Image
-                                                        src="/images/about-us-reveal-03.png"
-                                                        alt="Telugu Airlines helicopter in flight"
-                                                        fill
-                                                        sizes="(max-width: 639px) 180px, (max-width: 1023px) 240px, 300px"
-                                                        className="object-cover object-center"
-                                                    />
+                                                    <Image src="/images/about-us-reveal-03.png" alt="Telugu Airlines helicopter in flight" fill
+                                                        sizes="(max-width: 639px) 180px, (max-width: 1023px) 240px, 300px" className="object-cover object-center" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Badge */}
                                     <div data-about-badge className="relative z-50 flex flex-col items-center gap-1.5 sm:gap-2">
                                         <span className="inline-flex items-center gap-2">
                                             <Image src="/images/black-asterisk.svg" width={14} height={14} alt="" className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -206,7 +306,6 @@ export function AboutSectionDesktop({
                                             className="h-auto w-[min(200px,calc(100vw-2.5rem))] max-w-full shrink-0 sm:w-[min(220px,calc(100vw-2rem))]" aria-hidden />
                                     </div>
 
-                                    {/* Body paragraph */}
                                     <div data-about-copy-inner className="w-full">
                                         <p className={cn(
                                             'mx-auto block w-full text-center',
@@ -224,7 +323,7 @@ export function AboutSectionDesktop({
                                     </div>
                                 </div>
 
-                                {/* Right pair: col2 + col3 hugging each other */}
+                                {/* Right pair: col2 + col3 */}
                                 <div className="flex shrink-0 flex-row items-center gap-2 xl:gap-3">
                                     <div data-about-parallax-col-desktop className="shrink-0 will-change-transform">
                                         <div style={{ marginTop: MOSAIC_STAGGER_MARGIN_TOP[DESKTOP_MOSAIC_COLUMNS[2].stagger] }}>
