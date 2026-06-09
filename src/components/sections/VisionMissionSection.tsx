@@ -17,7 +17,6 @@ import {
     useCallback,
     useEffect,
     useLayoutEffect,
-    useMemo,
     useRef,
     useState,
     useSyncExternalStore,
@@ -45,7 +44,7 @@ import {
     VISION_HANDOFF_TRIGGER_ATTR,
     VISION_PANEL_SLOT_ATTR,
 } from '@/lib/animations/aboutVisionHandoff'
-import { gsap, ScrollTrigger, useGSAP } from '@/lib/animations/gsap'
+import { gsap, useGSAP } from '@/lib/animations/gsap'
 import { fadeInUp, scaleIn, staggerContainer } from '@/lib/animations/motion'
 import { faqAccordionInnerClassName } from '@/lib/ui/aboutRevealShell'
 import { cn } from '@/lib/utils'
@@ -192,7 +191,7 @@ function VisionMissionImageCard({
             aria-hidden={className?.includes('opacity-0')}
             className={cn(
                 'pointer-events-none w-full overflow-hidden',
-                'rounded-card sm:rounded-[24px]',
+                'rounded-card sm:rounded-3xl',
                 'transition-opacity duration-500 ease-out',
                 className,
                 VISION_MISSION_IMAGE_SHELL
@@ -230,42 +229,24 @@ function ScrollHighlightParagraph({
     const [scrollProgress, setScrollProgress] = useState(0)
     const localProgress = showHighlight ? scrollProgress : 1
 
-    useLayoutEffect(() => {
-        if (!showHighlight || !pRef.current) return
-
+    useEffect(() => {
+        if (!showHighlight) return
         const el = pRef.current
-        const words = el.querySelectorAll('[data-vision-word]')
-
-        const st = ScrollTrigger.create({
-            trigger: el,
-            start: 'top 75%',
-            end: 'bottom 45%',
-            scrub: true,
-            onUpdate: (self) => {
-                const progress = self.progress * VISION_WORD_HIGHLIGHT_SPEED
-                const wordCount = words.length
-                words.forEach((word, idx) => {
-                    const isRead = (idx + 1) / wordCount <= progress
-                    const w = word as HTMLElement
-                    if (isRead) {
-                        w.classList.remove('text-brand-muted')
-                        w.classList.add('text-[#121F2F]')
-                    } else {
-                        w.classList.remove('text-[#121F2F]')
-                        w.classList.add('text-brand-muted')
-                    }
-                })
-            }
-        })
-
-        return () => st.kill()
-    }, [showHighlight])
-
-    const tokens = useMemo(() => tokenizeParagraphText(paragraph.text), [paragraph.text])
+        if (!el) return
+        const rect = el.getBoundingClientRect()
+        const vh = window.innerHeight
+        const startPoint = vh * 0.75
+        const endPoint = vh * 0.45
+        const distanceToTravel = rect.height + (startPoint - endPoint)
+        const progress = clamp((startPoint - rect.top) / Math.max(1, distanceToTravel), 0, 1)
+        setScrollProgress(progress)
+    }, [visionProgress, showHighlight])
 
     if (!showHighlight) {
         return <p className={cn(BODY_CLASS, 'text-[#121F2F]')}>{paragraph.text}</p>
     }
+
+    const tokens = tokenizeParagraphText(paragraph.text)
     const wordCount = tokens.filter((t) => /\S/.test(t)).length
     const isActive = localProgress > 0 && localProgress < 1
     const isPast = localProgress >= 1
@@ -300,40 +281,27 @@ function ScrollHighlightBullet({
     const [scrollProgress, setScrollProgress] = useState(0)
     const localProgress = showHighlight ? scrollProgress : 1
 
-    useLayoutEffect(() => {
-        if (!showHighlight || !pRef.current) return
-
+    useEffect(() => {
+        if (!showHighlight) return
         const el = pRef.current
-        const words = el.querySelectorAll('[data-mission-word]')
-
-        const st = ScrollTrigger.create({
-            trigger: el,
-            start: 'top 50%',
-            end: 'bottom 25%',
-            scrub: true,
-            onUpdate: (self) => {
-                const progress = self.progress * VISION_WORD_HIGHLIGHT_SPEED
-                const wordCount = words.length
-                words.forEach((word, idx) => {
-                    const isRead = (idx + 1) / wordCount <= progress
-                    const w = word as HTMLElement
-                    if (isRead) {
-                        w.classList.remove('text-brand-muted')
-                        w.classList.add('text-[#121F2F]')
-                    } else {
-                        w.classList.remove('text-[#121F2F]')
-                        w.classList.add('text-brand-muted')
-                    }
-                })
-            }
-        })
-
-        return () => st.kill()
+        if (!el) return
+        const compute = () => {
+            const rect = el.getBoundingClientRect()
+            const vh = window.innerHeight
+            const startPoint = vh * 0.5
+            const endPoint = vh * 0.25
+            const distanceToTravel = rect.height + (startPoint - endPoint)
+            const progress = clamp((startPoint - rect.top) / Math.max(1, distanceToTravel), 0, 1)
+            setScrollProgress(progress)
+        }
+        compute()
+        window.addEventListener('scroll', compute, { passive: true })
+        return () => window.removeEventListener('scroll', compute)
     }, [showHighlight])
 
-    const tokens = useMemo(() => tokenizeParagraphText(text), [text])
-
     if (!showHighlight) return <span className={cn('min-w-0 flex-1', 'text-[#121F2F]')}>{text}</span>
+
+    const tokens = tokenizeParagraphText(text)
     const wordCount = tokens.filter((t) => /\S/.test(t)).length
     const isActive = localProgress > 0 && localProgress < 1
     const isPast = localProgress >= 1
@@ -373,7 +341,7 @@ function MissionBulletList({
         const row = (
             <>
                 <Image src={VISION_MISSION_IMAGES.bullet.src} alt="" width={20} height={21}
-                    className="mt-0.5 h-5 w-5 shrink-0 object-contain sm:h-[21px]" aria-hidden />
+                    className="mt-0.5 h-5 w-5 shrink-0 object-contain sm:h-5.25" aria-hidden />
                 {content}
             </>
         )
@@ -672,7 +640,7 @@ export function VisionMissionSection() {
     return (
         <Section id="vision-mission" variant="default" paddingY="none"
             {...{ [VISION_HANDOFF_TRIGGER_ATTR]: '' }}
-            className="bg-brand-surface overflow-visible relative z-[45]"
+            className="bg-brand-surface overflow-visible relative z-45"
         >
             {/* DESKTOP lg+ */}
             <m.div ref={scrollTrackRef} className={cn('relative hidden w-full lg:block', DESKTOP_TRACK_INITIAL_MIN_H)}>
@@ -694,8 +662,6 @@ export function VisionMissionSection() {
     lg:py-8
     xl:translate-y-[4vh]
     2xl:translate-y-[7vh] 
-    h-[70vh]
-    xl:h-[75vh]
     2xl:h-[78vh]
   ">
                         <DesktopImagePanel
@@ -807,3 +773,40 @@ export function VisionMissionSection() {
         </Section>
     )
 }
+
+
+
+// 'use client'
+
+// import { useSyncExternalStore } from 'react'
+// import { VisionDesktop } from './vision/VisionDesktop'
+// import { VisionTablet } from './vision/VisionTablet'
+// import { VisionMobile } from './vision/VisionMobile'
+
+// type VisionTier = 'mobile' | 'tablet' | 'desktop'
+
+// function getVisionTier(): VisionTier {
+//     if (window.matchMedia('(min-width: 1024px)').matches) return 'desktop'
+//     if (window.matchMedia('(min-width: 768px)').matches) return 'tablet'
+//     return 'mobile'
+// }
+
+// const visionTierMqs =
+//     typeof window !== 'undefined'
+//         ? [window.matchMedia('(min-width: 768px)'), window.matchMedia('(min-width: 1024px)')]
+//         : []
+
+// const subscribeVisionTier = (cb: () => void) => {
+//     visionTierMqs.forEach((mq) => mq.addEventListener('change', cb))
+//     return () => visionTierMqs.forEach((mq) => mq.removeEventListener('change', cb))
+// }
+
+// const visionTierSnapshot = (): VisionTier => typeof window !== 'undefined' ? getVisionTier() : 'desktop'
+// const visionTierServerSnapshot = (): VisionTier => 'desktop'
+
+// export function VisionMissionSection() {
+//     const tier = useSyncExternalStore(subscribeVisionTier, visionTierSnapshot, visionTierServerSnapshot)
+//     if (tier === 'desktop') return <VisionDesktop />
+//     if (tier === 'tablet') return <VisionTablet />
+//     return <VisionMobile />
+// }

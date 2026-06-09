@@ -93,7 +93,7 @@ function MobileImageStrip({
                     whileInView="visible"
                     viewport={{ once: true, margin: '-8%' }}
                     transition={tNoY(i * 0.06)}
-                    className="relative aspect-square w-[clamp(4rem,16vw,6.5rem)] overflow-hidden rounded-[12px] border-2 border-white/80 bg-white shadow-[0_6px_18px_-6px_rgba(9,9,11,0.14)]"
+                    className="relative aspect-square w-[clamp(4rem,16vw,6.5rem)] overflow-hidden rounded-xl border-2 border-white/80 bg-white shadow-[0_6px_18px_-6px_rgba(9,9,11,0.14)]"
                 >
                     <Image src={img.src} alt={img.alt} fill sizes="(max-width: 767px) 16vw" className="object-cover object-center" />
                 </m.div>

@@ -302,7 +302,7 @@ export function OurModelsDesktop() {
                                     >
                                         {/* Frame intentionally transparent — helicopter floats on gradient bg */}
                                         <div data-card-frame className="absolute inset-0 rounded-2xl opacity-0" />
-                                        <div className="relative h-[100%] w-[100%] z-10" aria-hidden>
+                                        <div className="relative h-full w-full z-10" aria-hidden>
                                             <Image
                                                 src={model.overviewImageSrc}
                                                 alt=""
@@ -337,7 +337,7 @@ export function OurModelsDesktop() {
                                     data-ourmodels-detail
                                     className="absolute inset-0 flex h-full min-h-0 flex-col overflow-hidden pointer-events-none opacity-0 will-change-[opacity]"
                                 >
-                                    <div className="max-w-base mx-auto flex h-full min-h-0 w-full flex-col overflow-hidden px-6 py-6 lg:px-10 lg:pt-[8rem] lg:pb-6">
+                                    <div className="max-w-base mx-auto flex h-full min-h-0 w-full flex-col overflow-hidden px-6 py-6 lg:px-10 lg:pt-32 lg:pb-6">
                                         <ModelDetailBody
                                             model={model}
                                             stepIndex={index}
