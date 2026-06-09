@@ -46,9 +46,6 @@ const GRID_IMAGES = [
     REVEAL_IMAGES[6],
 ]
 
-// reveal-06 is at index 5 — it lives in GRID_IMAGES[2] on mobile.
-// We register it as the handoff card so the context has a valid ref
-// (the bridge won't morph on mobile, but state machine still needs it).
 const HANDOFF_IMAGE_SRC = '/images/about-us-reveal-06.png'
 
 function MobileImageCard({

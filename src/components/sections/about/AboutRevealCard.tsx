@@ -51,8 +51,17 @@ export function AboutRevealSquareCard({
                     src={image.src}
                     alt={image.alt}
                     fill
-                    sizes={image.sizes}
-                    className={cn('object-cover', isHandoff ? 'object-[center_35%]' : 'object-center')}
+                    quality={100}
+                    priority={isHandoff}
+                    sizes={
+                        isHandoff
+                            ? '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 40vw'
+                            : image.sizes
+                    }
+                    className={cn(
+                        'object-cover',
+                        isHandoff ? 'object-[center_35%]' : 'object-center'
+                    )}
                 />
             </div>
         </div>

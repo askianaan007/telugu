@@ -652,7 +652,20 @@ export function VisionMissionSection() {
                     'gap-6 xl:gap-10'
                 )}>
                     <div ref={setVisionPanelSlotRef} data-vision-layout="lg" {...{ [VISION_PANEL_SLOT_ATTR]: '' }}
-                        className="relative h-full min-h-0 min-w-0 self-stretch py-6 lg:py-8">
+                        className="
+    relative
+    h-full
+    min-h-0
+    min-w-0
+    self-stretch
+    py-6
+    lg:py-8
+    xl:translate-y-[4vh]
+    2xl:translate-y-[7vh] 
+    h-[70vh]
+    xl:h-[75vh]
+    2xl:h-[78vh]
+  ">
                         <DesktopImagePanel
                             showMissionImage={metrics.showMissionImage} visionKenBurns={metrics.visionKenBurns}
                             missionKenBurns={metrics.missionKenBurns} isReducedMotion={isReducedMotion}
