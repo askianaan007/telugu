@@ -66,13 +66,13 @@ function HeroBottomCloudRail({ className, leftX, rightX, cloudY, cloudOpacity }:
             aria-hidden
             style={cloudOpacity != null ? { opacity: cloudOpacity } : undefined}
             className={cn(
-                'pointer-events-none absolute bottom-[2rem] left-1/2 h-[44%] w-[170%] max-w-none -translate-x-1/2 translate-y-2',
+                'pointer-events-none absolute bottom-8 left-1/2 h-[44%] w-[170%] max-w-none -translate-x-1/2 translate-y-2',
                 'sm:translate-y-3',
 
-                'md:bottom-[0rem]',
-                'lg:bottom-[0rem]',
-                'xl:bottom-[6rem]',
-                '2xl:bottom-[0rem]',
+                'md:bottom-0',
+                'lg:bottom-0',
+                'xl:bottom-24',
+                '2xl:bottom-0',
                 'lg:h-[52%]',
                 'lg:w-[185%]',
                 gpuClass,
@@ -296,7 +296,7 @@ export function HeroSection() {
 
                     <div
                         aria-hidden
-                        className="pointer-events-none absolute -top-[35%] -right-[35%] z-0 size-[min(90vw,900px)] opacity-60"
+                        className="pointer-events-none absolute top-[-35%] right-[-35%] z-0 size-[min(90vw,900px)] opacity-60"
                     >
                         <Image
                             src="/images/home-hero-bg-circle.png"

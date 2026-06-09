@@ -191,7 +191,7 @@ function VisionMissionImageCard({
             aria-hidden={className?.includes('opacity-0')}
             className={cn(
                 'pointer-events-none w-full overflow-hidden',
-                'rounded-card sm:rounded-[24px]',
+                'rounded-card sm:rounded-3xl',
                 'transition-opacity duration-500 ease-out',
                 className,
                 VISION_MISSION_IMAGE_SHELL
@@ -341,7 +341,7 @@ function MissionBulletList({
         const row = (
             <>
                 <Image src={VISION_MISSION_IMAGES.bullet.src} alt="" width={20} height={21}
-                    className="mt-0.5 h-5 w-5 shrink-0 object-contain sm:h-[21px]" aria-hidden />
+                    className="mt-0.5 h-5 w-5 shrink-0 object-contain sm:h-5.25" aria-hidden />
                 {content}
             </>
         )
@@ -640,7 +640,7 @@ export function VisionMissionSection() {
     return (
         <Section id="vision-mission" variant="default" paddingY="none"
             {...{ [VISION_HANDOFF_TRIGGER_ATTR]: '' }}
-            className="bg-brand-surface overflow-visible relative z-[45]"
+            className="bg-brand-surface overflow-visible relative z-45"
         >
             {/* DESKTOP lg+ */}
             <m.div ref={scrollTrackRef} className={cn('relative hidden w-full lg:block', DESKTOP_TRACK_INITIAL_MIN_H)}>
@@ -662,8 +662,6 @@ export function VisionMissionSection() {
     lg:py-8
     xl:translate-y-[4vh]
     2xl:translate-y-[7vh] 
-    h-[70vh]
-    xl:h-[75vh]
     2xl:h-[78vh]
   ">
                         <DesktopImagePanel
@@ -775,3 +773,40 @@ export function VisionMissionSection() {
         </Section>
     )
 }
+
+
+
+// 'use client'
+
+// import { useSyncExternalStore } from 'react'
+// import { VisionDesktop } from './vision/VisionDesktop'
+// import { VisionTablet } from './vision/VisionTablet'
+// import { VisionMobile } from './vision/VisionMobile'
+
+// type VisionTier = 'mobile' | 'tablet' | 'desktop'
+
+// function getVisionTier(): VisionTier {
+//     if (window.matchMedia('(min-width: 1024px)').matches) return 'desktop'
+//     if (window.matchMedia('(min-width: 768px)').matches) return 'tablet'
+//     return 'mobile'
+// }
+
+// const visionTierMqs =
+//     typeof window !== 'undefined'
+//         ? [window.matchMedia('(min-width: 768px)'), window.matchMedia('(min-width: 1024px)')]
+//         : []
+
+// const subscribeVisionTier = (cb: () => void) => {
+//     visionTierMqs.forEach((mq) => mq.addEventListener('change', cb))
+//     return () => visionTierMqs.forEach((mq) => mq.removeEventListener('change', cb))
+// }
+
+// const visionTierSnapshot = (): VisionTier => typeof window !== 'undefined' ? getVisionTier() : 'desktop'
+// const visionTierServerSnapshot = (): VisionTier => 'desktop'
+
+// export function VisionMissionSection() {
+//     const tier = useSyncExternalStore(subscribeVisionTier, visionTierSnapshot, visionTierServerSnapshot)
+//     if (tier === 'desktop') return <VisionDesktop />
+//     if (tier === 'tablet') return <VisionTablet />
+//     return <VisionMobile />
+// }

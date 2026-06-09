@@ -1,3 +1,6 @@
+
+
+
 'use client'
 
 import { useEffect, useRef } from 'react'
@@ -44,10 +47,21 @@ export function HeroSilkBackground({ reduceMotion, className }: HeroSilkBackgrou
         let resizeRaf = 0
         function resize() {
             cancelAnimationFrame(resizeRaf)
+
             resizeRaf = requestAnimationFrame(() => {
                 const p = canvas!.parentElement!
+
                 canvas!.width = p.offsetWidth * DPR
                 canvas!.height = p.offsetHeight * DPR
+
+                const W = canvas!.width / DPR
+                const H = canvas!.height / DPR
+
+                ctx.save()
+                ctx.scale(DPR, DPR)
+                ctx.fillStyle = '#94CEE8'
+                ctx.fillRect(0, 0, W, H)
+                ctx.restore()
             })
         }
         resize()
@@ -139,7 +153,7 @@ export function HeroSilkBackground({ reduceMotion, className }: HeroSilkBackgrou
         <div
             aria-hidden
             className={cn(
-                'pointer-events-none absolute inset-0 overflow-hidden rounded-t-[40px] rounded-b-none',
+                'pointer-events-none absolute inset-0 overflow-hidden rounded-t-[40px] rounded-b-none bg-[#94CEE8]',
                 className
             )}
         >

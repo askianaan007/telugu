@@ -143,7 +143,7 @@ export function ModelProgressBadge({
     return (
         <div
             data-progress-badge
-            className="relative box-border h-[72px] w-[72px] shrink-0 rounded-full border border-[#D9D9D9] xl:h-[100px] xl:w-[100px]"
+            className="relative box-border h-18 w-18 shrink-0 rounded-full border border-[#D9D9D9] xl:h-25 xl:w-25"
             style={{ ['--ring-deg' as string]: '0deg' }}
             aria-hidden
         >
@@ -153,7 +153,7 @@ export function ModelProgressBadge({
                     background: `radial-gradient(circle at center, #F0F1F2 40%, transparent 90%), conic-gradient(from var(--ring-deg, 0deg), #7EB8EA 0deg, #B6D1F3 ${arcDeg}deg, transparent ${arcDeg}deg, transparent 360deg)`,
                 }}
             />
-            <div className="absolute inset-[6px] flex items-center justify-center rounded-full border border-[#C9C9C9] bg-[rgba(240,241,242,0.2)] xl:inset-[10px]">
+            <div className="absolute inset-1.5 flex items-center justify-center rounded-full border border-[#C9C9C9] bg-[rgba(240,241,242,0.2)] xl:inset-2.5">
                 <span className="[font-family:var(--font-halant)] text-xl leading-normal text-[#121F2F] tabular-nums xl:text-[30px]">
                     {safe + 1}/{total}
                 </span>
@@ -327,9 +327,9 @@ export function ModelDetailBody({
                     className={cn(
                         'relative z-32 flex w-full items-end justify-center',
                         'pt-3 lg:pt-4',
-                        '[padding-bottom:clamp(1rem,6dvh,2.5rem)]',
-                        'md:[padding-bottom:clamp(1.25rem,8dvh,3.5rem)]',
-                        'lg:[padding-bottom:clamp(1.75rem,10dvh,4.5rem)]',
+                        'pb-[clamp(1rem,6dvh,2.5rem)]',
+                        'md:pb-[clamp(1.25rem,8dvh,3.5rem)]',
+                        'lg:pb-[clamp(1.75rem,10dvh,4.5rem)]',
                         '2xl:pb-[12vh]'
                     )}
                 >

@@ -26,8 +26,6 @@ import { useEffect, useRef, useState } from 'react'
 // ← NEW: import the pre-scroll engine
 import { preScrollPage } from '@/lib/preScroll'
 
-console.log('[SitePreloader] module loaded — preScrollPage:', typeof preScrollPage)
-
 // Phase 'pre-scrolling' is new — all others are unchanged
 type Phase = 'loading' | 'reveal' | 'pre-scrolling' | 'exiting' | 'done'
 
@@ -37,11 +35,14 @@ const EXIT_DURATION_MS = 800
 export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
     const [phase, setPhase] = useState<Phase>('loading')
     const [progress, setProgress] = useState(0)
-    const startTimeRef = useRef(Date.now())
-    const reducedMotion = useRef(false)
+    const [isReducedMotion, setIsReducedMotion] = useState(false)
+    const startTimeRef = useRef(0)
     const hasInitialized = useRef(false)
     const onCompleteRef = useRef(onComplete)
-    onCompleteRef.current = onComplete
+
+    useEffect(() => {
+        onCompleteRef.current = onComplete
+    }, [onComplete])
 
     // Abort controller for pre-scroll cleanup on unmount
     const abortRef = useRef<AbortController | null>(null)  // ← NEW
@@ -56,9 +57,12 @@ export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
     useEffect(() => {
         if (hasInitialized.current) return
         hasInitialized.current = true
+        startTimeRef.current = Date.now()
 
-        reducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        if (reducedMotion.current) {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        setIsReducedMotion(reduced)
+
+        if (reduced) {
             setPhase('done')
             onCompleteRef.current?.()
             return
@@ -90,14 +94,12 @@ export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
             if (cancelled) return
 
             // ← NEW: run hidden pre-scroll while loader still covers the page
-            console.log('[SitePreloader] → entering pre-scrolling phase')
             setPhase('pre-scrolling')
             const controller = new AbortController()
             abortRef.current = controller
 
             try {
                 await preScrollPage(controller.signal)
-                console.log('[SitePreloader] ✓ preScrollPage resolved')
             } catch (err) {
                 // AbortError = unmounted early, that's fine
                 // Any other error: log it but don't block the reveal
@@ -147,7 +149,7 @@ export function SitePreloader({ onComplete }: { onComplete?: () => void }) {
     return (
         <div
             data-site-preloader
-            data-reduced-motion={reducedMotion.current ? 'true' : 'false'}
+            data-reduced-motion={isReducedMotion ? 'true' : 'false'}
             data-exiting={phase === 'exiting' ? 'true' : 'false'}
             data-phase={phase}  // ← NEW: useful for debugging
             style={{

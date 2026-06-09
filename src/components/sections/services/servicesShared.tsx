@@ -90,8 +90,8 @@ export function CharterServiceCard({
                     ? 'w-full'
                     : 'w-[min(85vw,calc(100vw-2.5rem))] sm:w-[min(520px,calc(100vw-3rem))] md:w-[min(600px,90vw)] lg:w-[min(660px,92vw)]',
                 'border-about-reveal-frame-outer-border rounded-[22px] border bg-white/30 p-2 shadow-[0_14px_44px_-18px_rgba(9,9,11,0.22)] backdrop-blur-sm',
-                'h-auto min-h-[168px] xl:h-44.5 xl:min-h-44.5',
-                stack ? 'xl:max-w-[728px]' : 'xl:max-w-181.75',
+                'h-auto min-h-42 xl:h-44.5 xl:min-h-44.5',
+                stack ? 'xl:max-w-182' : 'xl:max-w-181.75',
                 !stack && 'xl:w-full'
             )}
         >
@@ -100,7 +100,7 @@ export function CharterServiceCard({
                     className={cn(
                         'relative flex shrink-0 items-center justify-center overflow-hidden',
                         'h-14 w-14 sm:h-16 sm:w-16',
-                        'md:h-20 md:w-20 lg:h-[128px] lg:w-[128px]'
+                        'md:h-20 md:w-20 lg:h-32 lg:w-32'
                     )}
                 >
                     <Image
@@ -116,7 +116,7 @@ export function CharterServiceCard({
                         className={cn(
                             'text-brand-black [font-family:var(--font-satoshi)] font-semibold tracking-[-0.02em]',
                             'text-[15px] leading-snug sm:text-base sm:leading-snug',
-                            'md:text-[17px] md:leading-[1.35] xl:text-[20px] xl:leading-[26px]'
+                            'md:text-[17px] md:leading-[1.35] xl:text-[20px] xl:leading-6.5'
                         )}
                     >
                         {service.title}
@@ -125,7 +125,7 @@ export function CharterServiceCard({
                         className={cn(
                             'text-brand-gray [font-family:var(--font-satoshi)] font-normal',
                             'text-[13px] leading-snug sm:text-sm sm:leading-relaxed',
-                            'md:text-[15px] md:leading-relaxed xl:text-[20px] xl:leading-[26px]'
+                            'md:text-[15px] md:leading-relaxed xl:text-[20px] xl:leading-6.5'
                         )}
                     >
                         {service.summary}
