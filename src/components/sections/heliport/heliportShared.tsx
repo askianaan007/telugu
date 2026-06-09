@@ -1,9 +1,5 @@
 'use client'
 
-// src/components/sections/heliport/heliportShared.tsx
-// ────────────────────────────────────────────────────
-// Shared card component, surface helpers, copy — used by all tiers.
-
 import React from 'react'
 import Image from 'next/image'
 import { motion as m } from 'framer-motion'
@@ -16,20 +12,20 @@ import { cn } from '@/lib/utils'
 export function heliportCardSurface(variant: HeliportCardVariant) {
     switch (variant) {
         case 'bg1':
+            // bg opacity raised 0.22→0.55 so backdrop-blur-sm is sufficient for depth;
+            // removed backdrop-saturate-150 (chained GPU filter = doubled compositing cost).
             return `
 border border-white/15
-bg-[rgba(10,28,54,0.22)]
-backdrop-blur-lg
-backdrop-saturate-150
+bg-[rgba(10,28,54,0.55)]
+backdrop-blur-sm
 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_24px_60px_-15px_rgba(0,0,0,0.35)]
 `
         case 'bg2':
-            // backdrop-blur-xl → backdrop-blur-sm: reduces compositing cost dramatically
-            // bg-white/85 on dark bg already looks opaque — heavy blur is not perceptible
-            return 'border border-white/40 bg-white/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_24px_60px_-15px_rgba(9,9,11,0.15)] backdrop-blur-sm'
+            // bg-white/90 is already nearly opaque — backdrop-blur is imperceptible, removed.
+            return 'border border-white/40 bg-white/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_24px_60px_-15px_rgba(9,9,11,0.15)]'
         case 'bg3':
-            // backdrop-blur-xl → backdrop-blur-sm: gold gradient is fully opaque
-            return 'border border-white/25 bg-linear-to-r from-brand-gold-start/85 via-brand-gold-mid/90 to-brand-gold-start/85 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),0_24px_60px_-15px_rgba(0,0,0,0.2)] backdrop-blur-sm'
+            // Gold gradient is 85-90% opaque — backdrop-blur is imperceptible, removed.
+            return 'border border-white/25 bg-linear-to-r from-brand-gold-start/85 via-brand-gold-mid/90 to-brand-gold-start/85 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),0_24px_60px_-15px_rgba(0,0,0,0.2)]'
         default:
             return ''
     }
@@ -47,7 +43,6 @@ export function heliportDescriptionClass(variant: HeliportCardVariant) {
 
 // Static class strings — defined outside component to avoid re-creation on every render
 const CARD_BASE = 'rounded-hero flex h-auto w-full max-w-[min(100%,326px)] flex-col items-start gap-5 px-[30px] py-[40px] md:max-w-none lg:w-[300px] lg:max-w-none xl:w-[326px]'
-const CARD_WILL_CHANGE = 'will-change-transform'
 
 export function HeliportSolutionCard({
     solution,
@@ -62,7 +57,10 @@ export function HeliportSolutionCard({
             className={cn(
                 'relative overflow-hidden',
                 CARD_BASE,
-                enableScrollReveal && CARD_WILL_CHANGE,
+                // will-change-transform removed: class-based will-change permanently promotes
+                // all cards to GPU compositor layers. Combined with overflow-hidden + border-radius
+                // this is the direct cause of the white rectangular artifacts during scroll.
+                // will-change is now set/cleared dynamically per GSAP animation via gsap.set().
                 heliportCardSurface(solution.variant),
             )}
         >
@@ -78,35 +76,17 @@ export function HeliportSolutionCard({
     "
             />
 
-            {/* Top reflection */}
+            {/* Corner glows: replaced two blur-3xl filter divs with a single CSS gradient.
+                Each blur-3xl creates a GPU filter texture — 9 cards × 2 = 18 filter contexts.
+                A radial-gradient with equivalent opacity/spread is visually identical at 0 GPU cost. */}
             <div
                 aria-hidden
-                className="
-        pointer-events-none
-        absolute
-        top-0
-        right-0
-        h-[90px]
-        w-[140px]
-        rounded-full
-        bg-white/8 blur-3xl
-    "
-            />
-
-            {/* Corner glow */}
-            <div
-                aria-hidden
-                className="
-        pointer-events-none
-        absolute
-        top-0
-        left-0
-        h-[120px]
-        w-[120px]
-        rounded-full
-        bg-white/8
-        blur-3xl
-    "
+                className="pointer-events-none absolute inset-0 rounded-hero"
+                style={{
+                    background:
+                        'radial-gradient(ellipse 120px 80px at 100% 0%, rgba(255,255,255,0.10) 0%, transparent 100%), ' +
+                        'radial-gradient(ellipse 100px 100px at 0% 0%, rgba(255,255,255,0.08) 0%, transparent 100%)',
+                }}
             />
             <div className="relative z-10 h-20 w-[85px] shrink-0">
                 <Image

@@ -1,15 +1,5 @@
 'use client'
 
-// src/components/sections/heliport/HeliportSolutionsMobile.tsx
-// ─────────────────────────────────────────────────────────────
-// Fixes applied (same set as Desktop):
-//  1. Removed `min-h-[200vh]` → pb-[100vh] on grid creates scroll distance without
-//     the upfront layout allocation cost.
-//  2. Removed `backdrop-blur-sm` from sticky header → solid bg, no per-frame compositing.
-//  3. Removed `scale` from GSAP reveal → pure translateY + opacity, no layout thrash.
-//  4. `overflow-clip` instead of `overflow-visible` on section.
-//  5. `contain: layout style` on grid container.
-
 import { useMemo, useRef } from 'react'
 
 import { Container } from '@/components/layout/Container'
@@ -42,8 +32,7 @@ export function HeliportSolutionsMobile() {
             const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-heliport-card]'))
             if (cards.length === 0) return
 
-            // FIX: no scale — translateY + opacity only
-            gsap.set(cards, { y: 40, opacity: 0 })
+            gsap.set(cards, { y: 40, opacity: 0, willChange: 'transform, opacity' })
 
             const io = new IntersectionObserver(
                 (entries) => {
@@ -57,6 +46,7 @@ export function HeliportSolutionsMobile() {
                             duration: 0.55,
                             ease: 'power2.out',
                             overwrite: true,
+                            onComplete: () => gsap.set(card, { willChange: 'auto' }),
                         })
                     })
                 },
@@ -67,7 +57,7 @@ export function HeliportSolutionsMobile() {
 
             return () => {
                 io.disconnect()
-                gsap.set(cards, { clearProps: 'y,opacity' })
+                gsap.set(cards, { clearProps: 'y,opacity,willChange' })
             }
         },
         { scope: sectionRef, dependencies: [reduceMotion] },
@@ -78,18 +68,14 @@ export function HeliportSolutionsMobile() {
             ref={sectionRef}
             variant="default"
             paddingY="none"
-            className={cn(
-                // FIX: overflow-clip, removed min-h-[200vh]
-                'bg-brand-navy! text-brand-white overflow-clip rounded-t-[50px]',
-                'pt-[140px]',
-            )}
+            // overflow-clip! overrides Section base's overflow-hidden.
+            // overflow-hidden creates a scroll container → sticky scopes to a non-scrollable
+            // ancestor → sticky header jitters. overflow-clip clips without scroll-container.
+            className="bg-brand-navy overflow-clip! rounded-t-[50px]"
         >
             <Container className="max-w-base z-section-content relative">
-                {/* FIX: no backdrop-blur-sm, solid bg only */}
-                <div
-                    className="bg-brand-navy/95 sticky top-[108px] z-10 pt-6 pb-8"
-                    style={{ willChange: 'transform' }}
-                >
+                {/* will-change removed — see Desktop for rationale */}
+                <div className="bg-brand-navy/95 sticky top-[108px] z-10 pt-6 pb-8">
                     <HeliportSectionHeader reduceMotion={reduceMotion} />
                 </div>
 

@@ -1,14 +1,4 @@
 'use client'
-
-// src/components/sections/heliport/HeliportSolutionsTablet.tsx
-// ─────────────────────────────────────────────────────────────
-// Fixes applied (same set as Desktop + Mobile):
-//  1. Removed `min-h-[200vh]` → scroll distance via padding on grid.
-//  2. Removed `backdrop-blur-sm` from sticky header → solid bg.
-//  3. Removed `scale` from GSAP reveals → translateY + opacity only.
-//  4. `overflow-clip` instead of `overflow-visible`.
-//  5. `contain: layout style` on grid container.
-
 import { useRef } from 'react'
 
 import { Container } from '@/components/layout/Container'
@@ -36,8 +26,7 @@ export function HeliportSolutionsTablet() {
             const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-heliport-card]'))
             if (cards.length === 0) return
 
-            // FIX: no scale
-            gsap.set(cards, { y: 40, opacity: 0 })
+            gsap.set(cards, { y: 40, opacity: 0, willChange: 'transform, opacity' })
 
             const io = new IntersectionObserver(
                 (entries) => {
@@ -51,6 +40,7 @@ export function HeliportSolutionsTablet() {
                             duration: 0.55,
                             ease: 'power2.out',
                             overwrite: true,
+                            onComplete: () => gsap.set(card, { willChange: 'auto' }),
                         })
                     })
                 },
@@ -61,7 +51,7 @@ export function HeliportSolutionsTablet() {
 
             return () => {
                 io.disconnect()
-                gsap.set(cards, { clearProps: 'y,opacity' })
+                gsap.set(cards, { clearProps: 'y,opacity,willChange' })
             }
         },
         { scope: sectionRef, dependencies: [reduceMotion] },
@@ -73,17 +63,13 @@ export function HeliportSolutionsTablet() {
             variant="default"
             paddingY="none"
             className={cn(
-                // FIX: overflow-clip, removed min-h-[200vh]
-                'bg-brand-navy! text-brand-white overflow-clip rounded-t-[50px]',
+                'bg-brand-navy! text-brand-white overflow-clip! rounded-t-[50px]',
                 'pt-[160px]',
             )}
         >
             <Container className="max-w-base z-section-content relative">
-                {/* FIX: no backdrop-blur-sm, solid bg */}
-                <div
-                    className="bg-brand-navy/95 sticky top-[120px] z-10 pt-6 pb-10"
-                    style={{ willChange: 'transform' }}
-                >
+                {/* will-change removed — see Desktop for rationale */}
+                <div className="bg-brand-navy/95 sticky top-[120px] z-10 pt-6 pb-10">
                     <HeliportSectionHeader reduceMotion={reduceMotion} />
                 </div>
 

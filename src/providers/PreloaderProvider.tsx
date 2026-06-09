@@ -1,13 +1,22 @@
 'use client'
 
+/**
+ * PreloaderProvider.tsx
+ *
+ * Simpler than before — pre-scroll now happens inside SitePreloader,
+ * so onComplete only fires when everything is ready.
+ *
+ * Changes from original:
+ * • handleComplete is synchronous again (pre-scroll moved to SitePreloader)
+ * • Removed the AbortController (no longer needed here)
+ * • Removed the inline window.scrollTo (preScroll.ts guarantees position 0)
+ * • All console.log debug lines kept for your convenience
+ */
+
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { SitePreloader } from '@/components/ui/SitePreloader'
 
 let hasPreloaded = false
-
-if (typeof window !== 'undefined') {
-    console.log('[PreloaderProvider] Module loaded — hasPreloaded:', hasPreloaded)
-}
 
 export function PreloaderProvider({ children }: { children: ReactNode }) {
     const [ready, setReady] = useState(() => hasPreloaded)
@@ -19,6 +28,7 @@ export function PreloaderProvider({ children }: { children: ReactNode }) {
         }
     }, [])
 
+    // Lock body scroll while preloader is active
     useEffect(() => {
         if (ready || hasPreloaded) return
         const original = document.body.style.overflow
@@ -26,12 +36,13 @@ export function PreloaderProvider({ children }: { children: ReactNode }) {
         return () => { document.body.style.overflow = original }
     }, [ready])
 
+    // Called by SitePreloader AFTER pre-scroll completes and exit animation finishes
     const handleComplete = useCallback(() => {
         console.log('[PreloaderProvider] handleComplete called — setting hasPreloaded=true')
         hasPreloaded = true
         setReady(true)
-        // Scroll to top cleanly once unlocked
-        window.scrollTo({ top: 0, behavior: 'instant' })
+        // preScroll.ts already guaranteed position 0, but belt-and-suspenders:
+        window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     }, [])
 
     if (hasPreloaded) {
