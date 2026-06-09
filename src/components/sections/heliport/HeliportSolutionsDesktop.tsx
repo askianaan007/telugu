@@ -27,17 +27,22 @@ export function HeliportSolutionsDesktop() {
                 cards.forEach((card) => {
                     gsap.fromTo(
                         card,
-                        { y: 48, scale: 0.96 },
+                        { y: 48, scale: 0.96, opacity: 0.8 },
                         {
                             y: 0,
                             scale: 1,
-                            ease: 'none',
+                            opacity: 1,
+                            ease: 'power1.out',
                             scrollTrigger: {
                                 trigger: card,
-                                start: 'top 88%',
-                                end: 'top 42%',
-                                scrub: 0.75,
+                                start: 'top 92%',
+                                end: 'top 50%',
+                                scrub: 0.5,
                                 invalidateOnRefresh: true,
+                                onEnter: () => gsap.set(card, { willChange: 'transform, opacity' }),
+                                onLeave: () => gsap.set(card, { clearProps: 'willChange' }),
+                                onEnterBack: () => gsap.set(card, { willChange: 'transform, opacity' }),
+                                onLeaveBack: () => gsap.set(card, { clearProps: 'willChange' }),
                             },
                         },
                     )
@@ -62,7 +67,7 @@ export function HeliportSolutionsDesktop() {
         >
             <Container className="max-w-base z-section-content relative">
                 {/* Sticky header — plain header, no framer-motion (avoids LazyMotion conflict) */}
-                <div className="bg-brand-navy/95 sticky top-[132px] z-10 pt-6 pb-80 backdrop-blur-sm">
+                <div className="bg-brand-navy/98 sticky top-[132px] z-10 pt-6 pb-80">
                     <header className="mx-auto flex max-w-[1024px] flex-col items-center gap-4 text-center sm:gap-5">
                         <div className="flex flex-col items-center gap-2.5">
                             <span className="text-brand-white inline-flex items-center gap-2">

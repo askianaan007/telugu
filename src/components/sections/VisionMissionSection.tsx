@@ -17,6 +17,7 @@ import {
     useCallback,
     useEffect,
     useLayoutEffect,
+    useMemo,
     useRef,
     useState,
     useSyncExternalStore,
@@ -44,7 +45,7 @@ import {
     VISION_HANDOFF_TRIGGER_ATTR,
     VISION_PANEL_SLOT_ATTR,
 } from '@/lib/animations/aboutVisionHandoff'
-import { gsap, useGSAP } from '@/lib/animations/gsap'
+import { gsap, ScrollTrigger, useGSAP } from '@/lib/animations/gsap'
 import { fadeInUp, scaleIn, staggerContainer } from '@/lib/animations/motion'
 import { faqAccordionInnerClassName } from '@/lib/ui/aboutRevealShell'
 import { cn } from '@/lib/utils'
@@ -229,24 +230,42 @@ function ScrollHighlightParagraph({
     const [scrollProgress, setScrollProgress] = useState(0)
     const localProgress = showHighlight ? scrollProgress : 1
 
-    useEffect(() => {
-        if (!showHighlight) return
+    useLayoutEffect(() => {
+        if (!showHighlight || !pRef.current) return
+
         const el = pRef.current
-        if (!el) return
-        const rect = el.getBoundingClientRect()
-        const vh = window.innerHeight
-        const startPoint = vh * 0.75
-        const endPoint = vh * 0.45
-        const distanceToTravel = rect.height + (startPoint - endPoint)
-        const progress = clamp((startPoint - rect.top) / Math.max(1, distanceToTravel), 0, 1)
-        setScrollProgress(progress)
-    }, [visionProgress, showHighlight])
+        const words = el.querySelectorAll('[data-vision-word]')
+
+        const st = ScrollTrigger.create({
+            trigger: el,
+            start: 'top 75%',
+            end: 'bottom 45%',
+            scrub: true,
+            onUpdate: (self) => {
+                const progress = self.progress * VISION_WORD_HIGHLIGHT_SPEED
+                const wordCount = words.length
+                words.forEach((word, idx) => {
+                    const isRead = (idx + 1) / wordCount <= progress
+                    const w = word as HTMLElement
+                    if (isRead) {
+                        w.classList.remove('text-brand-muted')
+                        w.classList.add('text-[#121F2F]')
+                    } else {
+                        w.classList.remove('text-[#121F2F]')
+                        w.classList.add('text-brand-muted')
+                    }
+                })
+            }
+        })
+
+        return () => st.kill()
+    }, [showHighlight])
+
+    const tokens = useMemo(() => tokenizeParagraphText(paragraph.text), [paragraph.text])
 
     if (!showHighlight) {
         return <p className={cn(BODY_CLASS, 'text-[#121F2F]')}>{paragraph.text}</p>
     }
-
-    const tokens = tokenizeParagraphText(paragraph.text)
     const wordCount = tokens.filter((t) => /\S/.test(t)).length
     const isActive = localProgress > 0 && localProgress < 1
     const isPast = localProgress >= 1
@@ -281,27 +300,40 @@ function ScrollHighlightBullet({
     const [scrollProgress, setScrollProgress] = useState(0)
     const localProgress = showHighlight ? scrollProgress : 1
 
-    useEffect(() => {
-        if (!showHighlight) return
+    useLayoutEffect(() => {
+        if (!showHighlight || !pRef.current) return
+
         const el = pRef.current
-        if (!el) return
-        const compute = () => {
-            const rect = el.getBoundingClientRect()
-            const vh = window.innerHeight
-            const startPoint = vh * 0.5
-            const endPoint = vh * 0.25
-            const distanceToTravel = rect.height + (startPoint - endPoint)
-            const progress = clamp((startPoint - rect.top) / Math.max(1, distanceToTravel), 0, 1)
-            setScrollProgress(progress)
-        }
-        compute()
-        window.addEventListener('scroll', compute, { passive: true })
-        return () => window.removeEventListener('scroll', compute)
+        const words = el.querySelectorAll('[data-mission-word]')
+
+        const st = ScrollTrigger.create({
+            trigger: el,
+            start: 'top 50%',
+            end: 'bottom 25%',
+            scrub: true,
+            onUpdate: (self) => {
+                const progress = self.progress * VISION_WORD_HIGHLIGHT_SPEED
+                const wordCount = words.length
+                words.forEach((word, idx) => {
+                    const isRead = (idx + 1) / wordCount <= progress
+                    const w = word as HTMLElement
+                    if (isRead) {
+                        w.classList.remove('text-brand-muted')
+                        w.classList.add('text-[#121F2F]')
+                    } else {
+                        w.classList.remove('text-[#121F2F]')
+                        w.classList.add('text-brand-muted')
+                    }
+                })
+            }
+        })
+
+        return () => st.kill()
     }, [showHighlight])
 
-    if (!showHighlight) return <span className={cn('min-w-0 flex-1', 'text-[#121F2F]')}>{text}</span>
+    const tokens = useMemo(() => tokenizeParagraphText(text), [text])
 
-    const tokens = tokenizeParagraphText(text)
+    if (!showHighlight) return <span className={cn('min-w-0 flex-1', 'text-[#121F2F]')}>{text}</span>
     const wordCount = tokens.filter((t) => /\S/.test(t)).length
     const isActive = localProgress > 0 && localProgress < 1
     const isPast = localProgress >= 1

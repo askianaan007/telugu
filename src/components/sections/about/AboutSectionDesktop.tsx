@@ -142,11 +142,13 @@ export function AboutSectionDesktop({
                     onUpdate(self) {
                         const pinTimeline = self.animation as gsap.core.Timeline | undefined
                         if (!pinTimeline || !heroBottomFade) return
+
                         const { exitProgress } = readPinTimelineMeta(pinTimeline)
                         const alpha = aboutHeroFadeAlpha(self.progress, exitProgress)
-                        if (Math.abs(alpha - lastFadeAlpha) > 0.004) {
+                        if (Math.abs(alpha - lastFadeAlpha) > 0.01) {
                             lastFadeAlpha = alpha
-                            gsap.set(heroBottomFade, { autoAlpha: alpha })
+                            heroBottomFade.style.opacity = alpha.toString()
+                            heroBottomFade.style.visibility = alpha > 0 ? 'visible' : 'hidden'
                         }
                     },
                     onLeave(self) {
