@@ -29,28 +29,34 @@ export function FooterDesktop() {
 
     const { scrollYProgress } = useScroll({ target: footerScrollTrackRef, offset: ['start start', 'end end'] })
     const { scrollYProgress: watermarkGradientProgress } = useScroll({ target: watermarkRevealRef, offset: ['center end', 'center start'] })
-    const springConfig = { stiffness: 72, damping: 28, mass: 0.55 }
-    const smoothProgress = useSpring(scrollYProgress, springConfig)
 
-    const headerOpacity = useSpring(useTransform(smoothProgress, [0, 0.15, 0.25], [1, 1, 0]), springConfig)
-    const headerY = useSpring(useTransform(smoothProgress, [0, 0.15, 0.25], ['0%', '0%', '-12%']), springConfig)
+    // ONE spring to smooth scroll progress
+    const smoothProgress = useSpring(scrollYProgress, { stiffness: 72, damping: 28, mass: 0.55 })
 
-    const cardY0 = useSpring(useTransform(smoothProgress, [0, 0.25, 0.45], CARD_PARALLAX_Y[0]), springConfig)
-    const cardY1 = useSpring(useTransform(smoothProgress, [0, 0.25, 0.45], CARD_PARALLAX_Y[1]), springConfig)
-    const cardY2 = useSpring(useTransform(smoothProgress, [0, 0.25, 0.45], CARD_PARALLAX_Y[2]), springConfig)
+    // Derive all transforms from smoothProgress — no chained springs
+    const headerOpacity = useTransform(smoothProgress, [0, 0.15, 0.25], [1, 1, 0])
+    const headerY = useTransform(smoothProgress, [0, 0.15, 0.25], ['0%', '0%', '-12%'])
+
+    const cardY0 = useTransform(smoothProgress, [0, 0.25, 0.45], CARD_PARALLAX_Y[0])
+    const cardY1 = useTransform(smoothProgress, [0, 0.25, 0.45], CARD_PARALLAX_Y[1])
+    const cardY2 = useTransform(smoothProgress, [0, 0.25, 0.45], CARD_PARALLAX_Y[2])
     const cardParallaxY = [cardY0, cardY1, cardY2]
     const cardsOpacity = useTransform(smoothProgress, [0.15, 0.35], [1, 0])
 
-    const wmOpacity = useSpring(useTransform(smoothProgress, [0.2, 0.4], [0, 1]), springConfig)
-    const wmY = useSpring(useTransform(smoothProgress, [0.2, 0.45], ['50vh', '0vh']), { stiffness: 60, damping: 26, mass: 0.5 })
+    const wmOpacity = useTransform(smoothProgress, [0.2, 0.4], [0, 1])
+    const wmY = useTransform(smoothProgress, [0.2, 0.45], ['50vh', '0vh'])
 
-    const globeScale = useSpring(useTransform(smoothProgress, [0.25, 0.55], [1.1, 0.5]), { stiffness: 60, damping: 26, mass: 0.5 })
-    const globeY = useSpring(useTransform(smoothProgress, [0.22, 0.55], ['90vh', '11vh']), { stiffness: 60, damping: 26, mass: 0.5 })
+    const globeScale = useTransform(smoothProgress, [0.25, 0.55], [1.1, 0.5])
+    const globeY = useTransform(smoothProgress, [0.22, 0.55], ['90vh', '11vh'])
 
-    const navContentY = useSpring(useTransform(scrollYProgress, [0.5, 0.68, 0.82, 1], ['50vh', '20vh', '0vh', '-8vh']), { stiffness: 76, damping: 24, mass: 0.48 })
-    const navContentOpacity = useSpring(useTransform(scrollYProgress, [0.48, 0.62], [0, 1]), springConfig)
+    const navContentY = useTransform(smoothProgress, [0.5, 0.68, 0.82, 1], ['50vh', '20vh', '0vh', '-8vh'])
+    const navContentOpacity = useTransform(smoothProgress, [0.48, 0.62], [0, 1])
 
-    const wmGradientPos = useSpring(useTransform(watermarkGradientProgress, [0.32, 0.5, 0.68], ['0%', '100%', '100%']), { stiffness: 52, damping: 34, mass: 0.7 })
+    // Single spring for watermark gradient (isolated, low stiffness)
+    const wmGradientPos = useSpring(
+        useTransform(watermarkGradientProgress, [0.32, 0.5, 0.68], ['0%', '100%', '100%']),
+        { stiffness: 52, damping: 34, mass: 0.7 }
+    )
 
     const motionEnabled = reduceMotion !== true
 

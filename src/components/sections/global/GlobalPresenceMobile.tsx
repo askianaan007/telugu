@@ -15,7 +15,7 @@ import { OFFICE_LOCATIONS } from '@/data/offices'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { fadeInUp, staggerContainer } from '@/lib/animations/motion'
 import { cn } from '@/lib/utils'
-import { FLAG_STYLES, GlobalOfficeCard } from './globalPresenceShared'
+import { GlobalOfficeCard } from './globalPresenceShared'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -100,7 +100,6 @@ export function GlobalPresenceMobile() {
                     </Container>
                 </div>
             </div>
-            <style dangerouslySetInnerHTML={{ __html: FLAG_STYLES }} />
         </Section>
     )
 }

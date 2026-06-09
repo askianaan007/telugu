@@ -47,6 +47,7 @@ export function WhyChooseDesktop() {
         const center = centerCardRef.current
         if (!board || !center) return
 
+        let timer: ReturnType<typeof setTimeout>
         const computeConnectors = () => {
             const boardRect = board.getBoundingClientRect()
             const centerRect = center.getBoundingClientRect()
@@ -77,12 +78,17 @@ export function WhyChooseDesktop() {
             setConnectors(next)
         }
 
+        // Debounced version for resize — avoids thrashing during continuous resize
+        const debouncedCompute = () => {
+            clearTimeout(timer)
+            timer = setTimeout(computeConnectors, 80)
+        }
+
         computeConnectors()
-        const ro = new ResizeObserver(computeConnectors)
+        const ro = new ResizeObserver(debouncedCompute)
         ro.observe(board)
         ro.observe(center)
-        window.addEventListener('resize', computeConnectors)
-        return () => { ro.disconnect(); window.removeEventListener('resize', computeConnectors) }
+        return () => { ro.disconnect(); clearTimeout(timer) }
     }, [])
 
     return (

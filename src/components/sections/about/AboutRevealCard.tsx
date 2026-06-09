@@ -41,11 +41,11 @@ export function AboutRevealSquareCard({
         >
             <div
                 aria-hidden
-                className="pointer-events-none absolute inset-0 rounded-[12px] bg-linear-to-br from-transparent from-40% via-transparent via-55% to-[#090202]/8 sm:rounded-[18px] lg:rounded-2xl xl:rounded-[20px]"
+                className="pointer-events-none absolute inset-0 rounded-xl bg-linear-to-br from-transparent from-40% via-transparent via-55% to-[#090202]/8 sm:rounded-[18px] lg:rounded-2xl xl:rounded-card"
             />
             <div
                 {...(isHandoff ? { [ABOUT_HANDOFF_IMAGE_ATTR]: '' } : {})}
-                className="relative z-1 size-full overflow-hidden rounded-[12px] border-2 border-white bg-white sm:rounded-[18px] lg:rounded-2xl xl:rounded-[20px]"
+                className="relative z-1 size-full overflow-hidden rounded-xl border-2 border-white bg-white sm:rounded-[18px] lg:rounded-2xl xl:rounded-card"
             >
                 <Image
                     src={image.src}

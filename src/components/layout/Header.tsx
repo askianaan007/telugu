@@ -25,6 +25,22 @@ const SCROLL_HIDE_AFTER_Y = 20
 const SCROLL_DOWN_HIDE_DELTA = 6
 const SCROLL_UP_SHOW_DELTA = -10
 
+const glassStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.15)',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    border: '1.5px solid rgba(255,255,255,0.25)',
+    boxShadow: '0 8px 32px 0 rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.22)',
+}
+
+const mobileNavStyle: React.CSSProperties = {
+    background: 'rgba(18,31,47,0.92)',
+    backdropFilter: 'blur(32px)',
+    WebkitBackdropFilter: 'blur(32px)',
+    border: '1.5px solid rgba(255,255,255,0.12)',
+    boxShadow: '0 20px 40px -12px rgba(0,0,0,0.4)',
+}
+
 export default function Header() {
     const [open, setOpen] = useState(false)
     const [scrollHidden, setScrollHidden] = useState(false)
@@ -34,7 +50,6 @@ export default function Header() {
     const pendingRef = useRef(false)
     const reduceMotion = useReducedMotion()
 
-    // FIX 1: moved inside the component so it can access setOpen
     const handleNavClick = useCallback(
         (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
             e.preventDefault()
@@ -110,22 +125,6 @@ export default function Header() {
         },
     }), [hideOffsetY])
 
-    const glassStyle = useMemo(() => ({
-        background: 'rgba(255,255,255,0.15)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1.5px solid rgba(255,255,255,0.25)',
-        boxShadow: '0 8px 32px 0 rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.22)',
-    }), [])
-
-    const mobileNavStyle = useMemo(() => ({
-        background: 'rgba(18,31,47,0.92)',
-        backdropFilter: 'blur(32px)',
-        WebkitBackdropFilter: 'blur(32px)',
-        border: '1.5px solid rgba(255,255,255,0.12)',
-        boxShadow: '0 20px 40px -12px rgba(0,0,0,0.4)',
-    }), [])
-
     return (
         <>
             <motion.header
@@ -134,7 +133,7 @@ export default function Header() {
                 variants={reduceMotion ? undefined : headerVariants}
                 animate={reduceMotion ? { y: 0, opacity: 1, scale: 1 } : scrollHidden ? 'hidden' : 'visible'}
                 className={cn(
-                    'fixed inset-x-0 z-50 origin-top will-change-transform',
+                    'fixed inset-x-0 z-50 origin-top will-change-transform translate-z-0',
                     'top-7 px-8',
                     'sm:top-10 sm:px-10',
                     'md:top-10 md:px-10',
@@ -152,7 +151,6 @@ export default function Header() {
                     )}
                     style={glassStyle}
                 >
-                    {/* FIX 2: was `link.href` (undefined variable), now correctly '#hero' */}
                     <Link
                         href="#hero"
                         onClick={(e) => handleNavClick(e, '#hero')}
@@ -203,7 +201,6 @@ export default function Header() {
                         <div className="scale-[0.78] origin-right sm:scale-[0.85] lg:scale-100">
                             <ActionButton href="#contact" label="Contact Us" className="inline-flex" />
                         </div>
-                        {/* FIX 5: added aria-controls for accessibility */}
                         <button
                             type="button"
                             onClick={() => setOpen((v) => !v)}
@@ -236,7 +233,6 @@ export default function Header() {
                             onClick={() => setOpen(false)}
                             aria-hidden
                         />
-                        {/* FIX 3 & 5: added id for aria-controls; mobile links now use handleNavClick for smooth scroll */}
                         <motion.nav
                             id="mobile-nav"
                             className="absolute inset-x-3 top-16.5 max-h-[min(560px,calc(100dvh-8rem))] overflow-y-auto rounded-3xl p-5 sm:inset-x-4 sm:top-20 sm:p-6"

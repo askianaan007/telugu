@@ -18,7 +18,7 @@ function configureGsap(): void {
         limitCallbacks: true,
         syncInterval: 40,
     })
-    gsap.ticker.fps(60)
+    // Removed: gsap.ticker.fps(60) — allow native display refresh rate
     gsapConfigured = true
 }
 

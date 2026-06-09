@@ -403,8 +403,7 @@ export function TaglineScrollFull() {
         }
     }, [])
 
-    const syncProgress = useCallback((p: number) => { applyProgress(p) }, [applyProgress])
-    useEffect(() => { syncProgressRef.current = syncProgress }, [syncProgress])
+    useEffect(() => { syncProgressRef.current = applyProgress }, [applyProgress])
 
     useLayoutEffect(() => {
         if (prefersReducedMotion) { revealStickyScene(); return }
@@ -488,17 +487,22 @@ export function TaglineScrollFull() {
         () => {
             const container = containerRef.current
             if (!container) return
+            let resizeTimer: ReturnType<typeof setTimeout>
             const onResize = () => {
                 recomputeLayout()
                 ScrollTrigger.refresh()
                 if (prefersReducedMotion) applyReducedMotionState()
                 else syncProgressRef.current(pendingProgressRef.current)
             }
-            window.addEventListener('resize', onResize)
+            const debouncedResize = () => {
+                clearTimeout(resizeTimer)
+                resizeTimer = setTimeout(onResize, 100)
+            }
+            window.addEventListener('resize', debouncedResize, { passive: true })
             if (prefersReducedMotion) {
                 applyReducedMotionState()
                 revealStickyScene()
-                return () => window.removeEventListener('resize', onResize)
+                return () => { window.removeEventListener('resize', debouncedResize); clearTimeout(resizeTimer) }
             }
             const st = ScrollTrigger.create({
                 id: SCROLL_TRIGGER_ID,
@@ -520,7 +524,7 @@ export function TaglineScrollFull() {
             ScrollTrigger.refresh()
             syncProgressRef.current(st.progress)
             requestAnimationFrame(() => { syncProgressRef.current(st.progress); revealStickyScene() })
-            return () => { window.removeEventListener('resize', onResize); st.kill() }
+            return () => { window.removeEventListener('resize', debouncedResize); clearTimeout(resizeTimer); st.kill() }
         },
         { scope: containerRef, dependencies: [prefersReducedMotion, applyReducedMotionState, revealStickyScene, recomputeLayout] },
     )
@@ -569,7 +573,7 @@ export function TaglineScrollFull() {
                         <div
                             ref={shellRef}
                             data-tagline-shell
-                            className="box-border h-full w-full overflow-hidden rounded-[24px] border border-black/8 p-2"
+                            className="box-border h-full w-full overflow-hidden rounded-3xl border border-black/8 p-2"
                         >
                             <div
                                 ref={innerRef}
@@ -614,17 +618,17 @@ export function TaglineScrollFull() {
                             'sm:right-6 sm:left-6 sm:gap-3',
                             // md+: left-side overlay position (original desktop)
                             'md:top-2/5 md:right-auto md:bottom-auto md:left-0 md:z-20 md:max-w-[min(100%,285px)] md:-translate-y-1/2 md:pl-10',
-                            'lg:pl-12 xl:max-w-[285px]',
+                            'lg:pl-12 xl:max-w-71.25',
                             'opacity-0 will-change-[transform,opacity]',
                         )}
                     >
                         <span aria-hidden className="md:bg-brand-charcoal w-0.5 shrink-0 self-stretch bg-white sm:w-1" />
                         <p className={cn(
                             'min-w-0 flex-1 text-left [font-family:var(--font-halant)] font-normal tracking-[-0.04em]',
-                            'text-[15px] leading-[21px] text-white',
-                            'sm:text-[17px] sm:leading-[23px]',
-                            'md:text-brand-charcoal md:text-[22px] md:leading-[28px]',
-                            'lg:text-[25px] lg:leading-[30px]',
+                            'text-[15px] leading-5.25 text-white',
+                            'sm:text-[17px] sm:leading-5.75',
+                            'md:text-brand-charcoal md:text-[22px] md:leading-7',
+                            'lg:text-[25px] lg:leading-7.5',
                         )}>
                             {OVERLAY_COPY}
                         </p>

@@ -21,13 +21,6 @@ let hasPreloaded = false
 export function PreloaderProvider({ children }: { children: ReactNode }) {
     const [ready, setReady] = useState(() => hasPreloaded)
 
-    useEffect(() => {
-        console.log('[PreloaderProvider] mounted — hasPreloaded:', hasPreloaded, '— ready:', ready)
-        return () => {
-            console.log('[PreloaderProvider] unmounted')
-        }
-    }, [])
-
     // Lock body scroll while preloader is active
     useEffect(() => {
         if (ready || hasPreloaded) return
@@ -38,29 +31,20 @@ export function PreloaderProvider({ children }: { children: ReactNode }) {
 
     // Called by SitePreloader AFTER pre-scroll completes and exit animation finishes
     const handleComplete = useCallback(() => {
-        console.log('[PreloaderProvider] handleComplete called — setting hasPreloaded=true')
         hasPreloaded = true
         setReady(true)
         // preScroll.ts already guaranteed position 0, but belt-and-suspenders:
         window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     }, [])
 
-    if (hasPreloaded) {
-        return <>{children}</>
-    }
+    if (hasPreloaded) return <>{children}</>
 
     return (
         <>
             <SitePreloader onComplete={handleComplete} />
-            <div
-                style={{
-                    opacity: ready ? 1 : 0,
-                    transition: ready ? 'opacity 0.5s ease-out' : 'none',
-                    visibility: ready ? 'visible' : 'hidden',
-                }}
-            >
-                {children}
-            </div>
+            {/* Only mount children AFTER preloader completes to avoid running
+                GSAP/Framer/Lenis effects while the screen is hidden */}
+            {ready && children}
         </>
     )
 }

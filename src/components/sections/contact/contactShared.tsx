@@ -37,12 +37,12 @@ export function ContactFormCard({
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 }) {
     return (
-        <div data-contact-form-card className="w-full max-w-[542px] will-change-transform xl:max-w-[542px]">
+        <div data-contact-form-card className="w-full max-w-135.5 will-change-transform xl:max-w-135.5">
             <form
                 onSubmit={onSubmit}
-                className="border-about-reveal-frame-outer-border bg-about-reveal-frame-outer/95 w-full rounded-[28px] border-white p-2 shadow-[0_14px_44px_-18px_rgba(9,9,11,0.16)] backdrop-blur-sm"
+                className="border-about-reveal-frame-outer-border bg-about-reveal-frame-outer/95 w-full rounded-[28px] p-2 shadow-[0_14px_44px_-18px_rgba(9,9,11,0.16)] backdrop-blur-sm"
             >
-                <div className="border-about-reveal-inner-border bg-about-reveal-inner-bg rounded-2xl border-2 p-6 sm:p-8 xl:p-[36px]">
+                <div className="border-about-reveal-inner-border bg-about-reveal-inner-bg rounded-2xl border-2 p-6 sm:p-8 xl:p-9">
                     <div className="space-y-4 sm:space-y-5">
                         <ContactField label="Name" htmlFor="name">
                             <input id="name" name="name" type="text" required value={form.name} onChange={onChange} placeholder="Jane Smith" className={INPUT_CLS} />
@@ -60,7 +60,7 @@ export function ContactFormCard({
                         </div>
                         <ContactField label="Write Something" htmlFor="message">
                             <textarea id="message" name="message" rows={4} value={form.message} onChange={onChange} placeholder="Ask your doubts..."
-                                className="text-brand-charcoal placeholder:text-brand-muted/35 focus-visible:border-brand-navy/30 min-h-[120px] w-full resize-none rounded-[12px] border border-[#d1d5db] bg-white px-3.5 py-3 text-[16px] focus-visible:outline-none" />
+                                className="text-brand-charcoal placeholder:text-brand-muted/35 focus-visible:border-brand-navy/30 min-h-30 w-full resize-none rounded-xl border border-[#d1d5db] bg-white px-3.5 py-3 text-[16px] focus-visible:outline-none" />
                         </ContactField>
                     </div>
                     <div className="mt-6" data-contact-cta>
@@ -76,13 +76,13 @@ export function ContactHeading() {
     return (
         <div data-contact-heading className="mb-8 flex flex-col items-center gap-2.5 text-center will-change-transform sm:mb-10">
             <span className="text-brand-black inline-flex items-center gap-2">
-                <Image src="/images/black-asterisk.svg" width={14} height={14} alt="" className="h-[14px] w-[14px] shrink-0" aria-hidden />
+                <Image src="/images/black-asterisk.svg" width={14} height={14} alt="" className="h-3.5 w-3.5 shrink-0" aria-hidden />
                 <span className="[font-family:var(--font-geist)] text-[14px] font-semibold tracking-[0.2em] uppercase">
                     Get In Touch
                 </span>
             </span>
             <Image src="/images/header-line-transparent-lite.svg" width={364} height={12} alt="" className="h-auto w-[min(364px,calc(100vw-4rem))] max-w-full shrink-0" aria-hidden />
-            <h2 className="text-brand-black max-w-[14ch] [font-family:var(--font-halant)] text-[clamp(2.05rem,3.2vw+1rem,3.75rem)] leading-[1.06] font-normal tracking-[-0.03em] text-balance lg:max-w-[998px]">
+            <h2 className="text-brand-black max-w-[14ch] [font-family:var(--font-halant)] text-[clamp(2.05rem,3.2vw+1rem,3.75rem)] leading-[1.06] font-normal tracking-[-0.03em] text-balance lg:max-w-249.5">
                 Seamless Aviation Support & Global Charter Solutions
             </h2>
         </div>

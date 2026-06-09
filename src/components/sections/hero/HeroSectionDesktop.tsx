@@ -133,9 +133,10 @@ export function HeroSectionDesktop({
         target: aboutSectionRef,
         offset: ['start 30%', 'start -20%'],
     })
-    const smoothAbout = useSpring(aboutProgress, { stiffness: 60, damping: 20, mass: 0.5 })
-    const helicopterOpacity = useTransform(smoothAbout, [0, 0.6, 1], [1, 0.8, 0])
-    const helicopterY = useTransform(smoothAbout, [0, 1], ['0vh', '10vh'])
+    // Direct transform — no second spring. The Lenis smooth scroll provides
+    // enough easing; an additional spring here causes spring-on-spring lag.
+    const helicopterOpacity = useTransform(aboutProgress, [0, 0.6, 1], [1, 0.8, 0])
+    const helicopterY = useTransform(aboutProgress, [0, 1], ['0vh', '10vh'])
 
     const fixedLayerStyle = useMemo(() => ({
         zIndex: 'var(--z-helicopter)' as string,

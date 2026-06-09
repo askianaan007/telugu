@@ -6,49 +6,6 @@ import { OFFICE_LOCATIONS } from '@/data/offices'
 import { globalPresenceRevealInnerClassName } from '@/lib/ui/aboutRevealShell'
 import { cn } from '@/lib/utils'
 
-export const FLAG_STYLES = `
-.office-card-flag-container {
-  --flag-tx: -20px;
-  --flag-ty: 10px;
-  --flag-scale: 0.85;
-}
-@media (min-width: 480px) {
-  .office-card-flag-container {
-    --flag-tx: -30px;
-    --flag-ty: 15px;
-    --flag-scale: 0.9;
-  }
-}
-@media (min-width: 640px) {
-  .office-card-flag-container {
-    --flag-tx: -50px;
-    --flag-ty: 20px;
-    --flag-scale: 1.0;
-  }
-}
-@media (min-width: 768px) {
-  .office-card-flag-container {
-    --flag-tx: -70px;
-    --flag-ty: 30px;
-    --flag-scale: 1.1;
-  }
-}
-@media (min-width: 1024px) {
-  .office-card-flag-container {
-    --flag-tx: -120px;
-    --flag-ty: 45px;
-    --flag-scale: 0.85;
-  }
-}
-@media (min-width: 1280px) {
-  .office-card-flag-container {
-    --flag-tx: -140px;
-    --flag-ty: 70px;
-    --flag-scale: 1.0;
-  }
-}
-`
-
 // ─── Office card ──────────────────────────────────────────────────────────────
 
 export function GlobalOfficeCard({
@@ -117,14 +74,13 @@ export function GlobalOfficeCard({
     )
 }
 
+import { motion as m } from 'framer-motion'
+import { fadeInUp, staggerContainer } from '@/lib/animations/motion'
+import { ActionButton } from '@/components/ui/ActionButton'
+
 // ─── Left panel copy (shared across tiers) ────────────────────────────────────
 
 export function GlobalPresenceLeftPanel() {
-    // Dynamically required to avoid SSR issues with framer-motion
-    const { motion: m } = require('framer-motion') as typeof import('framer-motion')
-    const { fadeInUp, staggerContainer } = require('@/lib/animations/motion') as typeof import('@/lib/animations/motion')
-    const { ActionButton } = require('@/components/ui/ActionButton') as typeof import('@/components/ui/ActionButton')
-
     return (
         <m.aside
             variants={staggerContainer(0.1, 0.06)}

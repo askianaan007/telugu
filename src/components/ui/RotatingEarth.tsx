@@ -34,6 +34,14 @@ interface LandFeatureCollection {
   features: LandFeature[]
 }
 
+interface DotData {
+  lng: number
+  lat: number
+}
+
+// Module-level cache to survive remounts
+let moduleCache: { land: LandFeatureCollection; dots: DotData[] } | null = null
+
 /** Square canvas edge length (px) from viewport — xl (1280+) = 800. */
 function globeSizePx(viewportWidth: number): number {
   if (viewportWidth >= 1280) return 800
@@ -90,9 +98,16 @@ function pointInFeature(point: [number, number], feature: LandFeature): boolean 
   return false
 }
 
-interface DotData {
-  lng: number
-  lat: number
+const generateDotsInPolygon = (feature: LandFeature, dotSpacing = 14) => {
+  const dots: [number, number][] = []
+  const [[minLng, minLat], [maxLng, maxLat]] = geoBounds(feature as never)
+  const step = dotSpacing * 0.08
+  for (let lng = minLng; lng <= maxLng; lng += step) {
+    for (let lat = minLat; lat <= maxLat; lat += step) {
+      if (pointInFeature([lng, lat], feature)) dots.push([lng, lat])
+    }
+  }
+  return dots
 }
 
 export default function RotatingEarth({
@@ -104,7 +119,6 @@ export default function RotatingEarth({
 }: RotatingEarthProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef(0)
-  const landDataRef = useRef<{ land: LandFeatureCollection; dots: DotData[] } | null>(null)
 
   const [squareSize, setSquareSize] = useState(520)
   const [isLoading, setIsLoading] = useState(true)
@@ -113,8 +127,10 @@ export default function RotatingEarth({
   useLayoutEffect(() => {
     const update = () => setSquareSize(globeSizePx(window.innerWidth))
     update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
+    let timer: ReturnType<typeof setTimeout>
+    const debouncedUpdate = () => { clearTimeout(timer); timer = setTimeout(update, 150) }
+    window.addEventListener('resize', debouncedUpdate, { passive: true })
+    return () => { window.removeEventListener('resize', debouncedUpdate); clearTimeout(timer) }
   }, [])
 
   useEffect(() => {
@@ -143,18 +159,6 @@ export default function RotatingEarth({
       .clipAngle(90)
 
     const path = geoPath().projection(projection).context(context)
-
-    const generateDotsInPolygon = (feature: LandFeature, dotSpacing = 14) => {
-      const dots: [number, number][] = []
-      const [[minLng, minLat], [maxLng, maxLat]] = geoBounds(feature as never)
-      const step = dotSpacing * 0.08
-      for (let lng = minLng; lng <= maxLng; lng += step) {
-        for (let lat = minLat; lat <= maxLat; lat += step) {
-          if (pointInFeature([lng, lat], feature)) dots.push([lng, lat])
-        }
-      }
-      return dots
-    }
 
     const render = (landFeatures: LandFeatureCollection, allDots: DotData[]) => {
       context.clearRect(0, 0, containerWidth, containerHeight)
@@ -230,11 +234,9 @@ export default function RotatingEarth({
       cancelAnimationFrame(rafRef.current)
       rafRef.current = 0
       try {
-        if (!landDataRef.current) {
+        if (!moduleCache) {
           setIsLoading(true)
-          const res = await fetch(
-            'https://raw.githubusercontent.com/martynafford/natural-earth-geojson/refs/heads/master/110m/physical/ne_110m_land.json'
-          )
+          const res = await fetch('/data/ne_110m_land.json')
           if (!res.ok) throw new Error('Network error')
           const land = (await res.json()) as LandFeatureCollection
           const dots: DotData[] = []
@@ -243,12 +245,12 @@ export default function RotatingEarth({
               continue
             generateDotsInPolygon(feature, 14).forEach(([lng, lat]) => dots.push({ lng, lat }))
           }
-          landDataRef.current = { land, dots }
+          moduleCache = { land, dots }
           setIsLoading(false)
         }
 
-        if (cancelled || !landDataRef.current) return
-        const { land: landFeatures, dots: allDots } = landDataRef.current
+        if (cancelled || !moduleCache) return
+        const { land: landFeatures, dots: allDots } = moduleCache
 
         render(landFeatures, allDots)
         const tick = startSpin(landFeatures, allDots)
@@ -268,8 +270,6 @@ export default function RotatingEarth({
         )
         observer.observe(canvas)
 
-        // Store cleanup
-        const prevCancel = cancelled
         return () => { observer.disconnect() }
       } catch {
         if (!cancelled) {

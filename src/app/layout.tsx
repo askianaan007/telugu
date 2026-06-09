@@ -4,8 +4,9 @@ import LenisProvider from '@/providers/LenisProvider'
 import { MotionProviders } from '@/providers/MotionProviders'
 import { SiteNavScrollProvider } from '@/providers/SiteNavScrollProvider'
 import { PreloaderProvider } from '@/providers/PreloaderProvider'
-import { BookingModal } from '@/components/sections/booking/BookingModal'
+import dynamic from 'next/dynamic'
 import type { Metadata, Viewport } from 'next'
+
 import type { ReactNode } from 'react'
 import './globals.css'
 
@@ -76,7 +77,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <PreloaderProvider>
                 {children}
               </PreloaderProvider>
-              <BookingModal />
             </SiteNavScrollProvider>
           </MotionProviders>
         </LenisProvider>

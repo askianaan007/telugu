@@ -205,6 +205,7 @@ export function CharterServicesDesktop() {
                 stage.setAttribute('data-ready', '')
             }
 
+            let resizeTimer: ReturnType<typeof setTimeout>
             const refreshLayout = () => {
                 const progress = tl.scrollTrigger?.progress ?? 0
                 if (progress <= 0.001) {
@@ -215,7 +216,12 @@ export function CharterServicesDesktop() {
                 ScrollTrigger.refresh()
             }
 
-            window.addEventListener('resize', refreshLayout)
+            const debouncedRefreshLayout = () => {
+                clearTimeout(resizeTimer)
+                resizeTimer = setTimeout(refreshLayout, 120)
+            }
+
+            window.addEventListener('resize', debouncedRefreshLayout, { passive: true })
 
             // ── FIX 3 cont: single coordinated reveal + refresh ───────────────
             // Old: double-RAF → revealStack() → ScrollTrigger.refresh() inside it.
@@ -236,7 +242,8 @@ export function CharterServicesDesktop() {
             }
 
             return () => {
-                window.removeEventListener('resize', refreshLayout)
+                window.removeEventListener('resize', debouncedRefreshLayout)
+                clearTimeout(resizeTimer)
                 root.style.removeProperty('--charter-stack-bg-travel')
                 stage.removeAttribute('data-ready')
                 gsap.set(stage, { clearProps: 'opacity,visibility' })

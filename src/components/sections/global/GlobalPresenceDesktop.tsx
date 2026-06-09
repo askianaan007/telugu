@@ -15,7 +15,7 @@ import { ActionButton } from '@/components/ui/ActionButton'
 import { OFFICE_LOCATIONS } from '@/data/offices'
 import { fadeInUp, staggerContainer } from '@/lib/animations/motion'
 import { cn } from '@/lib/utils'
-import { FLAG_STYLES, GlobalOfficeCard } from './globalPresenceShared'
+import { GlobalOfficeCard } from './globalPresenceShared'
 
 export function GlobalPresenceDesktop() {
     const scrollTrackRef = useRef<HTMLDivElement>(null)
@@ -110,7 +110,6 @@ export function GlobalPresenceDesktop() {
                     </Container>
                 </div>
             </div>
-            <style dangerouslySetInnerHTML={{ __html: FLAG_STYLES }} />
         </Section>
     )
 }

@@ -74,8 +74,9 @@ export function FooterCardInner({ card }: { card: (typeof FOOTER_PRESENCE_CARDS)
     )
 }
 
+import { FooterPresenceCityTicker } from '@/components/layout/FooterPresenceCityTicker'
+
 export function FooterGlobalPresenceHeader({ activePresenceId }: { activePresenceId?: string }) {
-    const { FooterPresenceCityTicker } = require('@/components/layout/FooterPresenceCityTicker') as typeof import('@/components/layout/FooterPresenceCityTicker')
     return (
         <div className={cn(
             'mx-auto grid w-full max-w-full grid-cols-1 items-center justify-items-center gap-y-3 sm:gap-y-4',
