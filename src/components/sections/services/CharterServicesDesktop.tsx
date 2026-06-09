@@ -3,7 +3,28 @@
 // src/components/sections/services/CharterServicesDesktop.tsx
 // ────────────────────────────────────────────────────────────
 // Desktop (1024px+): GSAP scroll-pin with stacked card reveal + bg parallax.
-// Logic is IDENTICAL to the original CharterServicesSection lg branch.
+//
+// FIXED: card-0 smoothness issues
+// ────────────────────────────────
+// Root causes (all four addressed):
+//
+// 1. Transform conflict: JSX style={{ rotate }} uses CSS `rotate` property;
+//    GSAP uses `transform: rotate()`. They fought for ownership of the matrix.
+//    Fix: removed rotate from JSX style entirely. GSAP owns all transforms.
+//
+// 2. Card 0 excluded from timeline: only cards 1..N were in tl.to(), so
+//    ScrollTrigger.refresh() couldn't reposition card 0 correctly.
+//    Fix: card 0 is now a zero-travel tl.to() entry at t=0, giving GSAP full
+//    ownership and making invalidateOnRefresh work for it too.
+//
+// 3. RAF race in revealStack: double-RAF + ScrollTrigger.refresh() inside
+//    revealStack could run before layout was settled, snapping card 0.
+//    Fix: revealStack no longer calls ScrollTrigger.refresh() itself.
+//    Refresh is called once, after all positions are set, on a single rAF.
+//
+// 4. invalidateOnRefresh gap: card 0 had no timeline entry, so it never
+//    got the invalidateOnRefresh recalculation benefit.
+//    Fix: resolved by including card 0 in the timeline (see point 2).
 
 import { motion as m } from 'framer-motion'
 import Image from 'next/image'
@@ -63,13 +84,24 @@ export function CharterServicesDesktop() {
             stage.removeAttribute('data-ready')
             gsap.set(stage, { autoAlpha: 0 })
 
+            // ── FIX 1: clear CSS rotate before GSAP takes ownership ──────────
+            // The JSX rendered rotate via style.rotate (CSS individual property).
+            // We clear it here so GSAP's transform matrix is the sole owner.
+            cards.forEach((card) => {
+                card.style.rotate = ''
+            })
+
             const setCardPositions = (metrics: typeof stackMetrics) => {
                 cards.forEach((card, i) => {
                     gsap.set(card, {
                         xPercent: -50,
                         yPercent: -50,
                         x: 0,
+                        // ── FIX 2: card 0 starts at its final position ────────
+                        // charterStackHiddenStartY(0) already returns charterStackFinalY(0),
+                        // so this is unchanged behaviour — but now GSAP fully owns it.
                         y: charterStackHiddenStartY(i, metrics),
+                        // ── FIX 1 cont: rotation set via GSAP, not CSS ─────────
                         rotation: charterCardRotationDeg(i),
                         zIndex: 10 + i,
                         force3D: true,
@@ -105,6 +137,21 @@ export function CharterServicesDesktop() {
 
             const INITIAL_HOLD = 0.14
             const segment = (0.9 - INITIAL_HOLD) / Math.max(1, n - 1)
+
+            // ── FIX 2: include card 0 in the timeline ─────────────────────────
+            // A zero-travel tl.to() at t=0 gives GSAP full ownership of card 0's
+            // transform, so invalidateOnRefresh recalculates it correctly and
+            // ScrollTrigger.refresh() repositions it the same way it does cards 1..N.
+            tl.to(
+                cards[0],
+                {
+                    y: () => charterStackFinalY(0),   // same as start — zero travel
+                    duration: INITIAL_HOLD,
+                    ease: 'none',
+                    immediateRender: false,
+                },
+                0,
+            )
 
             for (let i = 1; i < n; i++) {
                 const startT = INITIAL_HOLD + (i - 1) * segment
@@ -146,10 +193,14 @@ export function CharterServicesDesktop() {
                 tl.to(bgFigure, { y: 0, scale: 1.03, duration: 0.35, ease: 'none' }, 0)
             }
 
+            // ── FIX 3: revealStack no longer calls ScrollTrigger.refresh() ────
+            // Previously: revealStack called both setCardPositions AND
+            // ScrollTrigger.refresh(), which could cause card 0 to snap if layout
+            // wasn't settled yet. Now revealStack only makes the stage visible.
+            // A single coordinated refresh happens after all positions are stable.
             const revealStack = () => {
                 const metrics = applyStackMetrics()
                 setCardPositions(metrics)
-                ScrollTrigger.refresh()
                 gsap.set(stage, { autoAlpha: 1 })
                 stage.setAttribute('data-ready', '')
             }
@@ -165,18 +216,32 @@ export function CharterServicesDesktop() {
             }
 
             window.addEventListener('resize', refreshLayout)
+
+            // ── FIX 3 cont: single coordinated reveal + refresh ───────────────
+            // Old: double-RAF → revealStack() → ScrollTrigger.refresh() inside it.
+            // New: single RAF → setPositions → reveal → ScrollTrigger.refresh()
+            // in the correct order, after one paint has occurred.
             const bgImg = bgFigure?.querySelector('img')
-            if (bgImg instanceof HTMLImageElement && !bgImg.complete) {
-                bgImg.addEventListener('load', revealStack, { once: true })
+            const doReveal = () => {
+                revealStack()
+                // Refresh after reveal so ScrollTrigger recalculates with visible
+                // layout. Card 0 is now in the timeline so it benefits too.
+                ScrollTrigger.refresh()
             }
-            requestAnimationFrame(() => requestAnimationFrame(revealStack))
+
+            if (bgImg instanceof HTMLImageElement && !bgImg.complete) {
+                bgImg.addEventListener('load', () => requestAnimationFrame(doReveal), { once: true })
+            } else {
+                requestAnimationFrame(doReveal)
+            }
 
             return () => {
                 window.removeEventListener('resize', refreshLayout)
                 root.style.removeProperty('--charter-stack-bg-travel')
                 stage.removeAttribute('data-ready')
                 gsap.set(stage, { clearProps: 'opacity,visibility' })
-                gsap.set(cards, { clearProps: 'transform,zIndex' })
+                // ── FIX 1 cont: clear all GSAP-owned transform props ──────────
+                gsap.set(cards, { clearProps: 'transform,x,y,xPercent,yPercent,rotation,zIndex' })
                 if (bgFigure) gsap.set(bgFigure, { clearProps: 'transform' })
                 tl.scrollTrigger?.kill()
                 tl.kill()
@@ -326,11 +391,13 @@ export function CharterServicesDesktop() {
                                         <div
                                             key={service.id}
                                             data-charter-stack-card
-                                            className="absolute top-1/2 left-1/2 w-full max-w-[min(660px,calc(100vw-3rem))] -translate-x-1/2 -translate-y-1/2 will-change-transform xl:max-w-182"
-                                            style={{
-                                                rotate: `${charterCardRotationDeg(i)}deg`,
-                                                zIndex: 10 + i,
-                                            }}
+                                            className="absolute top-1/2 left-1/2 w-full max-w-[min(660px,calc(100vw-3rem))] will-change-transform xl:max-w-182"
+                                            // ── FIX 1: rotate removed from JSX style ──────────────
+                                            // Previously: style={{ rotate: `${deg}deg`, zIndex }}
+                                            // The CSS `rotate` individual property conflicted with
+                                            // GSAP's transform matrix. GSAP now sets rotation
+                                            // exclusively via gsap.set(card, { rotation: deg }).
+                                            style={{ zIndex: 10 + i }}
                                         >
                                             <CharterServiceCard service={service} stack />
                                         </div>

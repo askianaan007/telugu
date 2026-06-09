@@ -330,7 +330,7 @@ export function OurModelsDesktop() {
                             <span data-word-models className="inline-block shrink-0 will-change-[transform,font-size]">Models</span>
                         </div>
 
-                        <div className="pointer-events-none absolute inset-0 z-40">
+                        <div className="pointer-events-none absolute inset-0 z-40 2xl:translate-y-16">
                             {OUR_MODELS.map((model, index) => (
                                 <div
                                     key={model.id}
