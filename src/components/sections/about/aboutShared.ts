@@ -61,7 +61,7 @@ export const COLUMN_PARALLAX_Y_RANGE = [
 ] as const
 
 export const MOBILE_LEFT_PARALLAX_Y:  readonly [number, number] = [80, 0]
-export const ABOUT_PIN_SCRUB_SMOOTH = 1.15
+export const ABOUT_PIN_SCRUB_SMOOTH = 2
 
 // ─── CSS vars for orbit ───────────────────────────────────────────────────────
 

@@ -133,7 +133,7 @@ export function AboutSectionDesktop({
                 scrollTrigger: {
                     trigger: root,
                     start: 'top 35px',
-                    end: '+=240%',
+                    end: '+=180%',
                     pin: true,
                     scrub: ABOUT_PIN_SCRUB_SMOOTH,
                     invalidateOnRefresh: true,
@@ -175,8 +175,8 @@ export function AboutSectionDesktop({
             if (copyInner) gsap.set(copyInner, { autoAlpha: 0, y: 75 })
             if (centerImage) gsap.set(centerImage, { autoAlpha: 1, scale: 1.8, y: 180, transformOrigin: 'center center' })
 
-            if (ringsLayer) tl.to(ringsLayer, { clipPath: 'inset(0 0 100% 0)', duration: 0.12, ease: 'power2.in' }, 0)
-            if (fixedHelicopterOpacityRef?.current) tl.to(fixedHelicopterOpacityRef.current, { clipPath: 'inset(0 0 100% 0)', duration: 0.12, ease: 'power2.in' }, 0)
+            if (ringsLayer) tl.to(ringsLayer, { clipPath: 'inset(0 0 100% 0)', duration: 0.25, ease: 'power2.in' }, 0)
+            if (fixedHelicopterOpacityRef?.current) tl.to(fixedHelicopterOpacityRef.current, { clipPath: 'inset(0 0 100% 0)', duration: 0.25, ease: 'power2.in' }, 0)
 
             if (centerImage) {
                 tl.fromTo(centerImage, { autoAlpha: 1, scale: 1.8, y: 180 }, { autoAlpha: 1, scale: 1.0, y: 0, duration: 0.12, ease: 'none', immediateRender: false }, 0)
